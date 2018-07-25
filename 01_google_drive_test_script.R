@@ -1,8 +1,3 @@
-# 
-# 
-# 
-#
-
 #package dependencies
 
 library(plyr)
@@ -13,7 +8,7 @@ require(googledrive)
 require(ggplot2)
 
 #check drives
-# drive_find(pattern = "FoRTE", n_max = 50)
+drive_find(pattern = "inventory", n_max = 50)
 # 
 
 #Direct Google Drive link to "FoRTE/data"
@@ -25,19 +20,22 @@ drive_get(as_id(x))
 # lists what is in drive
 drive_ls(x)
 
-# lists what is in drive
 
-files <- drive_ls(x)
+# id of drive with inventory
+survey.files <- as_id("https://drive.google.com/open?id=1uD8EP-C902qB5wYYzgRl_7JHPBzGZ-YQ")
+drive_ls(survey.files)
+files <- drive_ls(survey.files)
 
 
+dir.create("data/inventory", showWarnings = FALSE)
 
 for(f in files$name) {
-  
   cat("Downloading", f, "...\n")
-  setwd("./data/")
   drive_download(f, overwrite = TRUE)
-  setwd("..")
+  print(f)
 }
+
+
 
 
 # 
