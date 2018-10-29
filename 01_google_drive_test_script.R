@@ -8,13 +8,17 @@ require(tidyverse)
 require(googledrive)
 require(ggplot2)
 
-#check drives
-drive_find(n_max = 50)
-# https://drive.google.com/drive/folders/14XimVVLbjSfjpMk4X6ezcphWwBZvvizn?usp=sharing
+#check drives1
 
+drive_find(n_max = 50)
+ https://drive.google.com/drive/folders/14XimVVLbjSfjpMk4X6ezcphWwBZvvizn?usp=sharing
+ 4/hQAGN90E6LwXhNF31xyD1iahZ_0NdJfV_aUCJhNn2g5ZWChoTAWjxTg
 #Direct Google Drive link to "FoRTE/data"
 x <- as_id("https://drive.google.com/drive/folders/1YULT4fx50b1MXZNOywgEeosW0GkrUe9c?usp=sharing")
 x <- as_id("https://drive.google.com/drive/folders/14XimVVLbjSfjpMk4X6ezcphWwBZvvizn?usp=sharing")
+
+# haglof data
+x <- as_id("https://drive.google.com/open?id=1iEvUpfO7pQwO8Z_p8k1cCLSsMt2q0AYP")
 
 # Uses x to "get" drive
 drive_get(as_id(x))
@@ -26,10 +30,10 @@ drive_ls(x)
 # id of drive with inventory
 survey.files <- as_id("https://drive.google.com/open?id=1uD8EP-C902qB5wYYzgRl_7JHPBzGZ-YQ")
 drive_ls(survey.files)
-files <- drive_ls(survey.files)
+files <- drive_ls(x)
 
 
-dir.create("data/inventory", showWarnings = FALSE)
+dir.create("data/haglof", showWarnings = FALSE)
 
 for(f in files$name) {
   cat("Downloading", f, "...\n")
