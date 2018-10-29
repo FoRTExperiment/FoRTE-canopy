@@ -9,11 +9,12 @@ require(googledrive)
 require(ggplot2)
 
 #check drives
-drive_find(pattern = "inventory", n_max = 50)
-# 
+drive_find(n_max = 50)
+# https://drive.google.com/drive/folders/14XimVVLbjSfjpMk4X6ezcphWwBZvvizn?usp=sharing
 
 #Direct Google Drive link to "FoRTE/data"
 x <- as_id("https://drive.google.com/drive/folders/1YULT4fx50b1MXZNOywgEeosW0GkrUe9c?usp=sharing")
+x <- as_id("https://drive.google.com/drive/folders/14XimVVLbjSfjpMk4X6ezcphWwBZvvizn?usp=sharing")
 
 # Uses x to "get" drive
 drive_get(as_id(x))
