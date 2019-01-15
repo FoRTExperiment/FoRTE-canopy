@@ -7,7 +7,7 @@ require(dplyr)
 require(tidyverse)
 require(ggforce)
 require(splitstackshape)
-require(emojifont)
+
 
 # using plot A01W
 stem <- read.csv("./data/haglof/111.CSV")
@@ -53,6 +53,7 @@ stem$fate <- as.factor(stem$fate)
 stem$label <- ifelse( stem$fate == "kill", emoji('smile'), emoji('skull_and_crossbones'))
 #add emoji
 hist(stem$Tree_Dia)
+
 # stem map
 x11()
 ggplot() +
@@ -61,12 +62,46 @@ ggplot() +
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
   theme_classic()
 
+
+######
+# Assuming `trees` is your data.frame
+rtrees <- df[sample(nrow(df)), ]
+rtrees$cum_dbh <- cumsum(rtrees$dbh)
+samp_trees <- subset(rtrees, cum_dbh < 0.85 * sum(dbh))
+
+
+########
+stem %>%
+  arrange(-dbh) -> df.big
+
+sum.dbh <- sum(df.big$dbh)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$dbh[i]
+  
+  if(x < (0.45 * sum.dbh)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df.big$fate)
+
 x11()
-ggplot(data = stem, aes(x = Longitude, y = Latitude, size = (Tree_Dia/10), color = fate, label = label)) +
-  geom_text(family="EmojiOne", size=6)+
-  guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+ggplot() +
+  geom_point(data = df.big, aes(x = Longitude, y = Latitude, size = (Tree_Dia/10), color = fate, alpha = 0.8)) +
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
   theme_classic()
 
-ggplot(d, aes(x, y, color=type, label=label)) +
-  geom_text(family="EmojiOne", size=6)
+
+
+
 
