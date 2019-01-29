@@ -9,6 +9,8 @@ require(googledrive)
 require(ggplot2)
 
 #check drives1
+## force a new oauth token to be obtained
+drive_auth(reset = TRUE)
 
 drive_find(n_max = 50)
  https://drive.google.com/drive/folders/14XimVVLbjSfjpMk4X6ezcphWwBZvvizn?usp=sharing
