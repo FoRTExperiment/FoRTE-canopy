@@ -1,0 +1,5 @@
+sep=,
+Plot,Plot_Radius,Nr,Tree_Spc,Tree_Dia,Tree_Hgt,Tree_PosTex1,Tree_PosTex2,Tree_PosTex3,Tree_Local_x,Tree_Local_y,Tree_Local_Dist,Tree_Local_Angle,Tree_Angle_ToPlotCenter,Latitude,Longitude,Tree_Nr
+429, 18.00,Plot,0,,0,0,0,0,0,0,0,0,0,45.5603617,-84.7040393
+429, 18.00,00406,   1, 191,   0, 633, 594, 518,2.82,5.03,5.77,29.27,15,45.5604062,-84.7040013,406
+429, 18.00,00407,   1, 175,   0, 637, 578, 518,3.55,4.50,5.73,38.29,-4,45.5604012,-84.7039922,407
