@@ -95,8 +95,24 @@ hist(df.3$DBH_cm, breaks = seq(8, 63, by = 5))
 
 ggplot(df.3, aes(x = DBH_cm))+
   geom_histogram(binwidth = 5, color = "black")+
-  facet_grid(. ~ SubplotID)
+  facet_grid(. ~ Species)
+  
+table(df.3$Species)
 
+count(df.3$Species)
+#
+#
+#
+#
+
+
+
+
+
+
+
+
+##########
 colors <- c(
             "dodgerblue",
             "firebrick",
@@ -126,7 +142,7 @@ levels(df.3$dbh.class) <- c("8-13", "13-18", "18-23", "23-28", "28-33", "33-38",
 
 # how many of each by subplotID
 dbh.table <- table(df.3$SubplotID, df.3$dbh.class)
-write.table(dbh.table, file = "dbh_table.csv", sep = ",")
+#write.table(dbh.table, file = "dbh_table.csv", sep = ",")
 
 #write.csv(df.3, "forte_survey_sorted.csv")
 ####
