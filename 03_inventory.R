@@ -17,7 +17,7 @@ df <- as_tibble(rbindlist(lapply(file_list, fread)))
 
 #clear out no subplot rows
 df <- df[!is.na(df$Subplot),]
-source("addNewData.r")
+source("./code/addNewData.r")
 allowedVars <- c("SubplotID")
 
 df <- addNewData("./data/inventory_lookup_table.csv", df, allowedVars)
@@ -61,7 +61,7 @@ df$leaf_mass <- df$a * (df$DBH_cm^df$b)
 
 #new_DF <- df[is.na(df$a),]
 #####
-
+table(df$SubplotID)
 df.table <- table(df$Species, df$PlotID)
 df.table <- data.frame(df.table)
 
@@ -103,13 +103,13 @@ waffle(D/10, rows=5, size=0.5,
        title="Plot D", 
        xlab="1 square == 10 Individuals")
 
-
-savings <- c(`Mortgage ($84,911)`=84911, `Auto andntuition loans ($14,414)`=14414, 
-             `Home equity loans ($10,062)`=10062, `Credit Cards ($8,565)`=8565)
-waffle(savings/392, rows=7, size=0.5, 
-       colors=c("#c7d4b6", "#a3aabd", "#a0d0de", "#97b5cf"), 
-       title="Average Household Savings Each Year", 
-       xlab="1 square == $392")
+# 
+# savings <- c(`Mortgage ($84,911)`=84911, `Auto andntuition loans ($14,414)`=14414, 
+#              `Home equity loans ($10,062)`=10062, `Credit Cards ($8,565)`=8565)
+# waffle(savings/392, rows=7, size=0.5, 
+#        colors=c("#c7d4b6", "#a3aabd", "#a0d0de", "#97b5cf"), 
+#        title="Average Household Savings Each Year", 
+#        xlab="1 square == $392")
 
 
 #####
@@ -125,16 +125,13 @@ df.a1e <- subset(df, df$SubplotID == "A01E")
 
 #bring in inventory data
 # using plot A01W
-all_content = readLines("./data/haglof/112.CSV")
-skip_second = all_content[-3]
-a <- read.csv(textConnection(skip_second), header = TRUE, stringsAsFactors = FALSE)
 
-a <- read.csv("./data/haglof/112.CSV", skip)
+a <- read.csv("./data/haglof/112.CSV")
 b <- read.csv("./data/haglof/113.CSV")
 c <- read.csv("./data/haglof/114.CSV")
 d <- read.csv("./data/haglof/115.CSV")
 
-jim <- merge(a, b)
+jim <- rbind(a, b, c, d)
 colnames(jim)[colnames(jim)=="Nr"] <- "Tag"
 colnames(jim)[colnames(jim)=="Plot"] <- "Subplot"
 
@@ -143,12 +140,12 @@ jim %>%
          "Tree_Local_Angle", "Latitude", "Longitude") -> jim
 
 #merge data
-stem <- merge(df.a1e, inventory, all.x = TRUE)
+stem <- merge(df.a1e, jim, all.x = TRUE)
 
 #deal with the empty row issues
 stem <- subset(stem, !is.na(leaf_mass))
 
-
+#big
 stem %>%
   arrange(-leaf_mass) -> df.big
 
@@ -171,15 +168,61 @@ for (i in 1:nrow(df.big)) {
   
 }
 
-#loook at output
-table(df.big$fate)
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
 
 x11()
-ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette)+
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
   theme_classic()
+
+
+#start at the bottom
+stem %>%
+  arrange(leaf_mass) -> df.bottom
+
+sum.leaf.mass <- sum(df.bottom$leaf_mass)
+
+####space
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.bottom$leaf_mass[i]
+  
+  if(x < (0.45 * sum.leaf.mass)){
+    df.bottom$fate[i] <- "kill"}
+  else {
+    df.bottom$fate[i] <- "live"
+  }
+  
+}
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+#loook at output
+table(df.bottom$fate)
+
+x11()
+ggplot(data = df.bottom, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  theme_classic()
+
+
+A
+
 

@@ -1,0 +1,515 @@
+---
+title: "disturbance_draft_estimate"
+author: "Jeff Atkins"
+date: "March 6, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(data.table)
+require(plyr)
+require(dplyr)
+require(tidyverse)
+```
+
+###DRAFT DO NOT USE FOR FINAL
+
+## Disturbance Estimate (Psuedo-Random)
+
+
+This runs an estimate of the no. of trees to be girdled for a random plot in each replicate (i.e. A, B, C, D) for a number for the sawyers.
+
+```{r import-base-data, echo = FALSE}
+file_list <- list.files (path = "./data/inventory", 
+                                   pattern    = "*.csv", 
+                                   full.names = TRUE)
+
+
+df <- as_tibble(rbindlist(lapply(file_list, fread)))
+
+
+# lookupVariable	lookupValue	newVariable	newValue
+# Subplot	111	SubplotID	A01W
+
+#clear out no subplot rows
+df <- df[!is.na(df$Subplot),]
+source("./code/addNewData.r")
+allowedVars <- c("SubplotID")
+
+df <- addNewData("./data/inventory_lookup_table.csv", df, allowedVars)
+
+df <- data.frame(df)
+
+#
+df$PlotID <- substr(df$SubplotID, 0, 1)
+
+# cleaning up missing data
+df$Species[df$Species == "FAGR#"] <- "FAGR"
+df$Species[df$Species == "POGR ?"] <- "POGR"
+df$Species[df$Species == "TSCA ?"] <- "TSCA"
+df$Species[df$Species == "?"] <- "unknown"
+df$Species[df$Species == "UNKNOWN"] <- "unknown"
+df$Species[df$Species == "QUR"] <- "QURU"
+df$Species[df$Species == "ADRU"] <- "ACRU"
+#
+df <- subset(df, Species != "snag")
+#
+df$DBH_cm <- as.numeric(df$DBH_cm)
+#
+df %>%
+  filter(df$DBH_cm > 8) -> df
+
+
+#####
+# pulls in foliar allometry values for the upper great lakes, michigan or occasionally Maine 
+# from  Ter-Mikaelian & Korzukhin, 1997 "Biomass equations for sixty-five North American tree species"
+#
+# using the equation M = aD^b
+#
+# AMEL set to POTR, ACPA set to ACSA, BEPA set to BEAL
+lai.allo <- read.csv("./data/lai_allometry_table.csv")
+
+# calculate LAI biomass for each tree
+df$a <- lai.allo[match(df$Species, lai.allo$Species), "a"]
+df$b <- lai.allo[match(df$Species, lai.allo$Species), "b"]
+
+df$leaf_mass <- df$a * (df$DBH_cm^df$b)
+
+#new_DF <- df[is.na(df$a),]
+
+```
+##Replicate A at 45%, Top Down
+
+A01E
+
+```{r rep-a-top, echo = FALSE}
+#####
+
+########
+df.a1e <- subset(df, df$SubplotID == "A01E")
+
+#bring in inventory data
+# using plot A01W
+
+a <- read.csv("./data/haglof/112.CSV")
+b <- read.csv("./data/haglof/113.CSV")
+c <- read.csv("./data/haglof/114.CSV")
+d <- read.csv("./data/haglof/115.CSV")
+
+jim <- rbind(a, b, c, d)
+colnames(jim)[colnames(jim)=="Nr"] <- "Tag"
+colnames(jim)[colnames(jim)=="Plot"] <- "Subplot"
+
+jim %>%
+  select("Subplot", "Tag", "Tree_Local_x", "Tree_Local_y", "Tree_Local_Dist",
+         "Tree_Local_Angle", "Latitude", "Longitude") -> jim
+
+#merge data
+stem <- merge(df.a1e, jim, all.x = TRUE)
+
+#deal with the empty row issues
+stem <- subset(stem, !is.na(leaf_mass))
+
+#big
+stem %>%
+  arrange(-leaf_mass) -> df.big
+
+sum.leaf.mass <- sum(df.big$leaf_mass)
+
+
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf_mass[i]
+  
+  if(x < (0.45 * sum.leaf.mass)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+
+
+x11()
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  theme_classic()
+
+#loook at output
+table(df.big$fate)
+
+print("How man for entire plot (0.25 ha)?")
+kill.45 <- table(df.big$fate)
+print(kill.45[1] * 2.5)
+
+
+```
+
+```{r rep.a.bottom, echo = FALSE}
+#start at the bottom
+stem %>%
+  arrange(leaf_mass) -> df.bottom
+
+sum.leaf.mass <- sum(df.bottom$leaf_mass)
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.bottom$leaf_mass[i]
+  
+  if(x < (0.45 * sum.leaf.mass)){
+    df.bottom$fate[i] <- "kill"}
+  else {
+    df.bottom$fate[i] <- "live"
+  }
+  
+}
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+#bring in inventory data
+# using plot A01W
+
+a <- read.csv("./data/haglof/112.CSV")
+b <- read.csv("./data/haglof/113.CSV")
+c <- read.csv("./data/haglof/114.CSV")
+d <- read.csv("./data/haglof/115.CSV")
+
+jim <- rbind(a, b, c, d)
+colnames(jim)[colnames(jim)=="Nr"] <- "Tag"
+colnames(jim)[colnames(jim)=="Plot"] <- "Subplot"
+
+jim %>%
+  select("Subplot", "Tag", "Tree_Local_x", "Tree_Local_y", "Tree_Local_Dist",
+         "Tree_Local_Angle", "Latitude", "Longitude") -> jim
+
+#merge data
+stem <- merge(df.a1e, jim, all.x = TRUE)
+
+#deal with the empty row issues
+stem <- subset(stem, !is.na(leaf_mass))
+
+#big
+stem %>%
+  arrange(-leaf_mass) -> df.big
+
+sum.leaf.mass <- sum(df.big$leaf_mass)
+
+
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf_mass[i]
+  
+  if(x < (0.65 * sum.leaf.mass)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+
+```
+
+
+```{r figures, echo=FALSE, out.width='.49\\linewidth', fig.width=3, fig.height=3,fig.show='hold',fig.align='center'}
+
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  theme_classic()+
+  theme(legend.position="none")+
+  theme(axis.text = element_blank())+
+  ggtitle("Top-Down")
+
+ggplot(data = df.bottom, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  theme_classic()+
+  theme(legend.position="none")+
+  theme(axis.text = element_blank())+
+  ggtitle("Bottom-Up")
+
+#loook at output
+table(df.bottom$fate)
+
+
+print("How man for entire plot (0.25 ha)?")
+kill <- table(df.bottom$fate)
+print(kill[1] * 2.5)
+
+```
+
+
+## Replicate A at 65%
+
+```{r rep-a-top65, echo = FALSE}
+#####
+
+########
+df.a1e <- subset(df, df$SubplotID == "A01E")
+
+#bring in inventory data
+# using plot A01W
+
+a <- read.csv("./data/haglof/112.CSV")
+b <- read.csv("./data/haglof/113.CSV")
+c <- read.csv("./data/haglof/114.CSV")
+d <- read.csv("./data/haglof/115.CSV")
+
+jim <- rbind(a, b, c, d)
+colnames(jim)[colnames(jim)=="Nr"] <- "Tag"
+colnames(jim)[colnames(jim)=="Plot"] <- "Subplot"
+
+jim %>%
+  select("Subplot", "Tag", "Tree_Local_x", "Tree_Local_y", "Tree_Local_Dist",
+         "Tree_Local_Angle", "Latitude", "Longitude") -> jim
+
+#merge data
+stem <- merge(df.a1e, jim, all.x = TRUE)
+
+#deal with the empty row issues
+stem <- subset(stem, !is.na(leaf_mass))
+
+#big
+stem %>%
+  arrange(-leaf_mass) -> df.big
+
+sum.leaf.mass <- sum(df.big$leaf_mass)
+
+
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf_mass[i]
+  
+  if(x < (0.65 * sum.leaf.mass)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+
+
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  theme_classic()
+
+#loook at output
+table(df.big$fate)
+
+print("How man for entire plot (0.25 ha)?")
+kill.45 <- table(df.big$fate)
+print(kill.45[1] * 2.5)
+
+
+```
+
+```{r rep.a.bottom65, echo = FALSE}
+#start at the bottom
+stem %>%
+  arrange(leaf_mass) -> df.bottom
+
+sum.leaf.mass <- sum(df.bottom$leaf_mass)
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.bottom$leaf_mass[i]
+  
+  if(x < (0.65 * sum.leaf.mass)){
+    df.bottom$fate[i] <- "kill"}
+  else {
+    df.bottom$fate[i] <- "live"
+  }
+  
+}
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+#loook at output
+
+
+ggplot(data = df.bottom, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  theme_classic()
+
+#loook at output
+table(df.bottom$fate)
+
+
+print("How man for entire plot (0.25 ha)?")
+kill <- table(df.bottom$fate)
+print(kill[1] * 2.5)
+
+```
+
+## Replicate A at 85%
+```{r rep-a-top85, echo = FALSE}
+#####
+
+########
+df.a1e <- subset(df, df$SubplotID == "A01E")
+
+#bring in inventory data
+# using plot A01W
+
+a <- read.csv("./data/haglof/112.CSV")
+b <- read.csv("./data/haglof/113.CSV")
+c <- read.csv("./data/haglof/114.CSV")
+d <- read.csv("./data/haglof/115.CSV")
+
+jim <- rbind(a, b, c, d)
+colnames(jim)[colnames(jim)=="Nr"] <- "Tag"
+colnames(jim)[colnames(jim)=="Plot"] <- "Subplot"
+
+jim %>%
+  select("Subplot", "Tag", "Tree_Local_x", "Tree_Local_y", "Tree_Local_Dist",
+         "Tree_Local_Angle", "Latitude", "Longitude") -> jim
+
+#merge data
+stem <- merge(df.a1e, jim, all.x = TRUE)
+
+#deal with the empty row issues
+stem <- subset(stem, !is.na(leaf_mass))
+
+#big
+stem %>%
+  arrange(-leaf_mass) -> df.big
+
+sum.leaf.mass <- sum(df.big$leaf_mass)
+
+
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf_mass[i]
+  
+  if(x < (0.85 * sum.leaf.mass)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  theme(legend.position="none")+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  theme_classic()
+
+#loook at output
+table(df.big$fate)
+
+print("How man for entire plot (0.25 ha)?")
+kill.45 <- table(df.big$fate)
+print(kill.45[1] * 2.5)
+
+
+```
+
+```{r rep.a.bottom85, echo = FALSE}
+#start at the bottom
+stem %>%
+  arrange(leaf_mass) -> df.bottom
+
+sum.leaf.mass <- sum(df.bottom$leaf_mass)
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.bottom$leaf_mass[i]
+  
+  if(x < (0.85 * sum.leaf.mass)){
+    df.bottom$fate[i] <- "kill"}
+  else {
+    df.bottom$fate[i] <- "live"
+  }
+  
+}
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+#loook at output
+
+ggplot(data = df.bottom, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  theme_classic()
+
+#loook at output
+table(df.bottom$fate)
+
+
+print("How man for entire plot (0.25 ha)?")
+kill <- table(df.bottom$fate)
+print(kill[1] * 2.5)
+
+```
+
