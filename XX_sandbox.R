@@ -129,7 +129,21 @@ x11()
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
   theme_classic()
 
+  
+  
+  
+  ###### random things
+v <- c("top", "bottom")
+w <- c("E", "W")  
+x <- c(1, 2, 3, 4)
+y <- c("E", "W", "E", "W", "E", "W","E", "W")
+z <- c(0, 45, 65, 85)
+a <- c("top", "bottom", "top", "bottom", "top", "bottom", "top", "bottom")
 
-
-
-
+jenny <- data.frame(x, y, z, a)
+    df2 <- jenny[sample(nrow(jenny)),]
+    
+    
+A01.treatment <- data.frame(plot.side = sample(w), treatment = sample(v))
+A01.disturbance <- data.frame(plot = sample(x), disturbance = sample(z))
+A01.disturbance <- A01.disturbance[order(A01.disturbance$plot),]

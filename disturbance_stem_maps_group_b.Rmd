@@ -1,0 +1,461 @@
+---
+title: "disturbance_stem_maps_group_b"
+author: "Jeff Atkins"
+date: "April 3, 2019"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Disturbance Stem Maps
+
+The following document produces stem maps that assign mortality and treatments 
+DRAFT
+DRAFT
+DRAFT
+
+```{r inventory, echo = FALSE, message = FALSE, warning = FALSE}
+# loading the required packages
+library(ggplot2)
+library(ggmap)
+require(plyr)
+require(dplyr)
+require(tidyverse)
+require(ggforce)
+require(splitstackshape)
+require(data.table)
+
+# The palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#333333")
+
+
+#bring in inventory data
+
+#set data directory
+data_dir <- "./data/inventory/"
+
+#merge a bunch of .csvs
+multmerge = function(path){
+  filenames=list.files(path=path, full.names=TRUE)
+  rbindlist(lapply(filenames, fread))
+}
+
+#importing all the data
+inventory <- multmerge(data_dir)
+
+#convert to data frame
+inventory <- as(inventory, "data.frame")
+
+#remove empty lines from haglof
+inventory <- na.omit(inventory, cols = "Tag")
+
+#adding subplot
+source("./code/addNewData.r")
+allowedVars <- c("SubplotID")
+
+#add subplot
+df <- addNewData("./data/inventory_lookup_table.csv", inventory, allowedVars)
+
+#
+df$group <- as.factor(substr(df$SubplotID, 0, 1))
+
+#
+df$plotID <- as.factor(substr(df$SubplotID, 1, 3))
+
+# cleaning up df
+names(df)[names(df) == "DBH_cm"] <- "dbh"
+df$dbh <- as.numeric(df$dbh)
+df$SubplotID <- as.factor(df$SubplotID)
+
+
+# merge with spatial data
+# using plot A01W
+data_dir <- "./data/haglof/"
+
+#import all the .csv files
+spatial.data <- multmerge(data_dir)
+
+# make a data frame
+spatial.data <- as(spatial.data, "data.frame")
+
+#rename columns
+names(spatial.data)[1] <- "Subplot"
+names(spatial.data)[2] <- "Plot_Radius"
+names(spatial.data)[3] <- "Tag"
+names(spatial.data)[4] <- "Tree_Spc"
+names(spatial.data)[5] <- "Tree_Dia"
+names(spatial.data)[6] <- "Tree_Hgt"
+names(spatial.data)[7] <- "Tree_PosTex1"
+names(spatial.data)[8] <- "Tree_PosTex2"
+names(spatial.data)[9] <- "Tree_PosTex3"
+names(spatial.data)[10] <- "Tree_Local_x"
+names(spatial.data)[11] <- "Tree_Local_y"
+names(spatial.data)[12] <- "Tree_Local_Dist"
+names(spatial.data)[13] <- "Tree_Local_Angle"
+names(spatial.data)[14] <- "Tree_Angle_ToPlotCenter"
+names(spatial.data)[15] <- "Latitude"
+names(spatial.data)[16] <- "Longitude"
+names(spatial.data)[17] <- "Tree_Nr"
+
+
+spatial.data %>%
+  select("Subplot", "Tag", "Latitude", "Longitude") -> jim
+
+#merging
+stem <-  merge(df, jim, all.x = TRUE)
+
+```
+
+## B01
+
+```{r b01, echo=FALSE,  warning = FALSE}
+#  group plot disturbance
+#      B    1           0
+#      B    2          45
+#      B    3          85
+#      B    4          65
+# Group B Treatment Assignments
+#  plot plot.side treatment
+#    B1    bottom         E
+#    B1       top         W
+#    B2    bottom         W
+#    B2       top         E
+#    B3       top         W
+#    B3    bottom         E
+#    B4    bottom         W
+#    B4       top         E
+##################
+message("B01E, 0%, Control")
+
+  stem %>%
+  filter(SubplotID == "B01E") %>%
+  arrange(dbh) -> df
+
+sum.dbh <- sum(df$dbh)
+
+
+# they all live
+df$fate <- "live"
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B01E - Control")+
+  theme_classic()
+#####################################
+message("B01W, 0%, Control")
+  stem %>%
+  filter(SubplotID == "B01W") %>%
+  arrange(-dbh) -> df.big
+
+sum.dbh <- sum(df.big$dbh)
+
+
+# looping in
+x <- 0
+
+# they all live
+df.big$fate <- "live"
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B01W, 0%, Control")+
+  theme_classic()
+
+
+```
+
+## B02
+
+```{r b02, echo=FALSE,  warning = FALSE}
+
+#  group plot disturbance
+#      B    1           0
+#      B    2          45
+#      B    3          85
+#      B    4          65
+# Group B Treatment Assignments
+#  plot plot.side treatment
+#    B1    bottom         E
+#    B1       top         W
+#    B2    bottom         W
+#    B2       top         E
+#    B3       top         W
+#    B3    bottom         E
+#    B4    bottom         W
+#    B4       top         E
+#####################################
+message("B02E, 45%, top-down")
+  stem %>%
+  filter(SubplotID == "B02E") %>%
+  arrange(-dbh) -> df.big
+
+sum.dbh <- sum(df.big$dbh)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$dbh[i]
+  
+  if(x < (0.45 * sum.dbh)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B01E - 45% - Top-Down")+
+  theme_classic()
+
+##################
+message("B02W, 45%, Bottom-Down")
+
+  stem %>%
+  filter(SubplotID == "B02W") %>%
+  arrange(dbh) -> df
+
+sum.dbh <- sum(df$dbh)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$dbh[i]
+  
+  if(x < (0.45 * sum.dbh)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B02W - 45% - Bottom-Up")+
+  theme_classic()
+
+```
+
+## B03
+```{r b03, echo=FALSE,  warning = FALSE}
+
+###
+#  group plot disturbance
+#      B    1           0
+#      B    2          45
+#      B    3          85
+#      B    4          65
+# Group B Treatment Assignments
+#  plot plot.side treatment
+#    B1    bottom         E
+#    B1       top         W
+#    B2    bottom         W
+#    B2       top         E
+#    B3       top         W
+#    B3    bottom         E
+#    B4    bottom         W
+#    B4       top         E
+##################
+message("B03E, 85%, Bottom-Up")  
+  stem %>%
+  filter(SubplotID == "B03E") %>%
+  arrange(dbh) -> df
+
+sum.dbh <- sum(df$dbh)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$dbh[i]
+  
+  if(x < (0.85 * sum.dbh)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B03E - 85% - Bottom-Up")+
+  theme_classic()
+
+################################## 
+message("B03W, 85%, Top-Down")  
+
+stem %>%
+  filter(SubplotID == "B03W") %>%
+  arrange(-dbh) -> df.big
+
+sum.dbh <- sum(df.big$dbh)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$dbh[i]
+  
+  if(x < (0.85 * sum.dbh)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("b03W - 85% - Top-Down")+
+  theme_classic()
+
+
+```
+
+## B04
+```{r a04, echo=FALSE,  warning = FALSE}
+
+###
+#  group plot disturbance
+#      B    1           0
+#      B    2          45
+#      B    3          85
+#      B    4          65
+# Group B Treatment Assignments
+#  plot plot.side treatment
+#    B1    bottom         E
+#    B1       top         W
+#    B2    bottom         W
+#    B2       top         E
+#    B3       top         W
+#    B3    bottom         E
+#    B4    bottom         W
+#    B4       top         E
+##################
+message("B04E, 65%, top-down")
+  stem %>%
+  filter(SubplotID == "B04E") %>%
+  arrange(-dbh) -> df.big
+
+sum.dbh <- sum(df.big$dbh)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$dbh[i]
+  
+  if(x < (0.65 * sum.dbh)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B04E - 65% - Top-Down")+
+  theme_classic()
+#####################
+message("B04W, 65%, Bottom-Down")
+
+  stem %>%
+  filter(SubplotID == "B04W") %>%
+  arrange(dbh) -> df
+
+sum.dbh <- sum(df$dbh)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$dbh[i]
+  
+  if(x < (0.65 * sum.dbh)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette)+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B04W - 65% - Bottom-Up")+
+  theme_classic()
+#####################################
+
+
+```

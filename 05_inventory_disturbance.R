@@ -7,6 +7,7 @@ require(dplyr)
 require(tidyverse)
 require(ggforce)
 require(splitstackshape)
+require(data.table)
 # will make this a forte specific one eventually
 source("./code/addNewData.r")
 
@@ -22,7 +23,31 @@ jim %>%
          "Tree_Local_Angle", "Latitude", "Longitude") -> jim
 
 #bring in inventory data
-inventory <- read.csv("./data/inventory/Inventory_A01W.csv")
+#inventory <- read.csv("./data/inventory/Inventory_A01W.csv")
+
+#set data directory
+data_dir <- "./data/inventory/"
+
+#merge a bunch of .csvs
+multmerge = function(path){
+  filenames=list.files(path=path, full.names=TRUE)
+  rbindlist(lapply(filenames, fread))
+}
+
+#importing all the data
+inventory <- multmerge(data_dir)
+
+#convert to data frame
+inventory <- as(inventory, "data.frame")
+
+#remove empty lines from haglof
+inventory <- na.omit(inventory, cols = "Tag")
+
+#adding subplot
+source("./code/addNewData.r")
+allowedVars <- c("SubplotID")
+
+df <- addNewData("./data/inventory_lookup_table.csv", inventory, allowedVars)
 
 stem <- merge(inventory, jim, all.x = TRUE)
 
@@ -127,6 +152,7 @@ x11()
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+    ggtitle("A01W - 85% - Top-Down")+
   theme_classic()
 
 

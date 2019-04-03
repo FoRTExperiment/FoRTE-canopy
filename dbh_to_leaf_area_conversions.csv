@@ -1,0 +1,27 @@
+Species,component,a,b,se,source,ref
+FAGR,AB,0.1958,2.2538,0.141,New Brunswick,ker 1980a
+FAGR,FL,0.0233,1.6303,0.341,New Brunswick,ker 1980a
+POGR,AB,0.0785,2.4981,,Upper Great Lakes,"Perala and Alban, 1994"
+POGR,FL,0.0027,2.275,0.487,Upper Great Lakes,"Perala and Alban, 1994"
+ACPE,AB,0.0872,2.3539,,,basswood
+ACPE,FL,0.0049,2.094,,,basswood
+ACSA,AB,0.1641,2.4209,0.06,Upper Great Lakes,"Perala and Alban, 1994"
+ACSA,FL,0.037,1.695,0.405,Upper Great Lakes,"Perala and Alban, 1994"
+ACRU,AB,0.1789,2.334,0.116,Michigan,"Crow and Erdman, 1983"
+ACRU,FL,0.0373,1.54,0.569,Michigan,"Crow and Erdman, 1983"
+QURU,AB,0.1335,2.422,0.134,Upper Great Lakes,"Perala and Alban, 1994"
+QURU,FL,0.048,1.455,0.426,Upper Great Lakes,"Perala and Alban, 1994"
+BEPA,AB,0.1182,2.4287,,Upper Great Lakes,"Perala and Alban, 1994"
+BEPA,FL,0.0132,1.9505,,Upper Great Lakes,"Perala and Alban, 1994"
+BEAL2,AB,0.0872,2.587,0.128,Upper Great Lakes,"Perala and Alban, 1994"
+BEAL2,FL,0.007,2.003,0.632,Upper Great Lakes,"Perala and Alban, 1994"
+AMEL,AB,0.0872,2.3539,,,basswood
+AMEL,FL,0.0049,2.094,,,basswood
+TSCA,AB,0.1617,2.1536,0.199,New Brunswick,ker 1980a
+TSCA,FL,0.0454,1.6829,0.28,New Brunswick,ker 1980a
+PIST,AB,0.0755,2.3833,,Upper Great Lakes,"Perala and Alban, 1994"
+PIST,FL,0.0039,1.817,0.262,Upper Great Lakes,"Perala and Alban, 1994"
+PIRE,AB,0.0778,2.4171,,,
+PIRE,FL,0.0007,3.122,0.553,,
+POTR,AB,0.0527,2.5084,,Upper Great Lakes,"Perala and Alban, 1994"
+POTR,FL,0.0114,2.0261,,Upper Great Lakes,"Perala and Alban, 1994"

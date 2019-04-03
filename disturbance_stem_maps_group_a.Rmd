@@ -1,0 +1,492 @@
+---
+title: "Disturbance Stem Maps"
+author: "Jeff Atkins"
+date: "April 3, 2019"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Disturbance Stem Maps
+
+The following document produces stem maps that assign mortality and treatments 
+DRAFT
+DRAFT
+DRAFT
+
+```{r inventory, echo = FALSE, message = FALSE, warning = FALSE}
+# loading the required packages
+library(ggplot2)
+library(ggmap)
+require(plyr)
+require(dplyr)
+require(tidyverse)
+require(ggforce)
+require(splitstackshape)
+require(data.table)
+
+# The palette with black:
+cbbPalette <-c("#e6194B",  "#ffe119", "#4363d8", "#f58231", "#fabebe", "#469990",  "#9A6324", "#800000",  "#000075", "#a9a9a9",  "#000000", "#333333", "#666666", "#444444")
+
+
+#bring in inventory data
+
+#set data directory
+data_dir <- "./data/inventory/"
+
+#merge a bunch of .csvs
+multmerge = function(path){
+  filenames=list.files(path=path, full.names=TRUE)
+  rbindlist(lapply(filenames, fread))
+}
+
+#importing all the data
+inventory <- multmerge(data_dir)
+
+#convert to data frame
+inventory <- as(inventory, "data.frame")
+
+#remove empty lines from haglof
+inventory <- na.omit(inventory, cols = "Tag")
+
+#adding subplot
+source("./code/addNewData.r")
+allowedVars <- c("SubplotID")
+
+#add subplot
+df <- addNewData("./data/inventory_lookup_table.csv", inventory, allowedVars)
+
+#
+df$group <- as.factor(substr(df$SubplotID, 0, 1))
+
+#
+df$plotID <- as.factor(substr(df$SubplotID, 1, 3))
+
+# cleaning up df
+names(df)[names(df) == "DBH_cm"] <- "dbh"
+df$dbh <- as.numeric(df$dbh)
+df$SubplotID <- as.factor(df$SubplotID)
+df$Species <- as.factor(df$Species)
+
+
+# merge with spatial data
+# using plot A01W
+data_dir <- "./data/haglof/"
+
+#import all the .csv files
+spatial.data <- multmerge(data_dir)
+
+# make a data frame
+spatial.data <- as(spatial.data, "data.frame")
+
+#rename columns
+names(spatial.data)[1] <- "Subplot"
+names(spatial.data)[2] <- "Plot_Radius"
+names(spatial.data)[3] <- "Tag"
+names(spatial.data)[4] <- "Tree_Spc"
+names(spatial.data)[5] <- "Tree_Dia"
+names(spatial.data)[6] <- "Tree_Hgt"
+names(spatial.data)[7] <- "Tree_PosTex1"
+names(spatial.data)[8] <- "Tree_PosTex2"
+names(spatial.data)[9] <- "Tree_PosTex3"
+names(spatial.data)[10] <- "Tree_Local_x"
+names(spatial.data)[11] <- "Tree_Local_y"
+names(spatial.data)[12] <- "Tree_Local_Dist"
+names(spatial.data)[13] <- "Tree_Local_Angle"
+names(spatial.data)[14] <- "Tree_Angle_ToPlotCenter"
+names(spatial.data)[15] <- "Latitude"
+names(spatial.data)[16] <- "Longitude"
+names(spatial.data)[17] <- "Tree_Nr"
+
+
+spatial.data %>%
+  select("Subplot", "Tag", "Latitude", "Longitude") -> jim
+
+#merging
+stem <-  merge(df, jim, all.x = TRUE)
+
+# cleaning up missing data
+stem$Species[stem$Species == "FAGR#"] <- "FAGR"
+stem$Species[stem$Species == "POGR ?"] <- "POGR"
+stem$Species[stem$Species == "TSCA ?"] <- "TSCA"
+stem$Species[stem$Species == "?"] <- "unknown"
+stem$Species[stem$Species == "UNKNOWN"] <- "unknown"
+stem$Species[stem$Species == "QUR"] <- "QURU"
+stem$Species[stem$Species == "ADRU"] <- "ACRU"
+#
+stem <- subset(stem, Species != "snag")
+#
+#bring in conversion to leaf area
+allo.df <- read.csv("./data/dbh_to_leaf_area_conversions.csv")
+
+allo.df %>%
+  filter(component == "FL") -> allo.fl
+stem <- merge(stem, allo.fl)
+
+stem$leaf.mass <- stem$a * (stem$dbh^stem$b)
+
+stem <- droplevels(stem)
+```
+
+## A01
+
+```{r a01, echo=FALSE,  warning = FALSE}
+
+###
+# group plot disturbance
+# A    1          85
+# A    2          45
+# A    3          65
+# A    4           0
+# 
+# Group A Treatment Assignments
+# plot plot.side treatment
+# A1    bottom         E
+# A1       top         W
+# A2       top         E
+# A2    bottom         W
+# A3    bottom         E
+# A3       top         W
+# A4       top         W
+# A4    bottom         E
+####################################
+message("A01E, 85%, Bottom-Up")  
+  stem %>%
+  filter(SubplotID == "A01E") %>%
+  arrange(leaf.mass) -> df
+
+sum.leaf.mass <- sum(df$leaf.mass)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$leaf.mass[i]
+  
+  if(x < (0.85 * sum.leaf.mass)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("A01E - 85% - Bottom-Up")+
+  theme_classic()
+
+################################## 
+message("A01W, 85%, Top-Down")  
+
+stem %>%
+  filter(SubplotID == "A01W") %>%
+  arrange(-leaf.mass) -> df.big
+
+sum.leaf.mass <- sum(df.big$leaf.mass)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf.mass[i]
+  
+  if(x < (0.85 * sum.leaf.mass)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (leaf.mass/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("A01W - 85% - Top-Down")+
+  theme_classic()
+
+
+```
+
+## A02
+
+```{r a02, echo=FALSE,  warning = FALSE}
+
+###
+# group plot disturbance
+# A    1          85
+# A    2          45
+# A    3          65
+# A    4           0
+# 
+# Group A Treatment Assignments
+# plot plot.side treatment
+# A1    bottom         E
+# A1       top         W
+# A2       top         E
+# A2    bottom         W
+# A3    bottom         E
+# A3       top         W
+# A4       top         W
+# A4    bottom         E
+#####################################
+message("A02E, 45%, top-down")
+  stem %>%
+  filter(SubplotID == "A02E") %>%
+  arrange(-leaf.mass) -> df.big
+
+sum.leaf.mass <- sum(df.big$leaf.mass)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf.mass[i]
+  
+  if(x < (0.45 * sum.leaf.mass)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("A01E - 45% - Top-Down")+
+  theme_classic()
+
+##################
+message("A02W, 45%, Bottom-Down")
+
+  stem %>%
+  filter(SubplotID == "A02W") %>%
+  arrange(leaf.mass) -> df
+
+sum.leaf.mass <- sum(df$leaf.mass)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$leaf.mass[i]
+  
+  if(x < (0.45 * sum.leaf.mass)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("A02W - 45% - Bottom-Up")+
+  theme_classic()
+
+```
+
+## A03
+```{r a03, echo=FALSE,  warning = FALSE}
+
+###
+# group plot disturbance
+# A    1          85
+# A    2          45
+# A    3          65
+# A    4           0
+# 
+# Group A Treatment Assignments
+# plot plot.side treatment
+# A1    bottom         E
+# A1       top         W
+# A2       top         E
+# A2    bottom         W
+# A3    bottom         E
+# A3       top         W
+# A4       top         W
+# A4    bottom         E
+##################
+message("A03E, 65%, Bottom-Down")
+
+  stem %>%
+  filter(SubplotID == "A03E") %>%
+  arrange(leaf.mass) -> df
+
+sum.leaf.mass <- sum(df$leaf.mass)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$leaf.mass[i]
+  
+  if(x < (0.65 * sum.leaf.mass)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df$fate)
+
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("A03E - 65% - Bottom-Up")+
+  theme_classic()
+#####################################
+message("A02E, 45%, top-down")
+  stem %>%
+  filter(SubplotID == "A03W") %>%
+  arrange(-leaf.mass) -> df.big
+
+sum.leaf.mass <- sum(df.big$leaf.mass)
+
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf.mass[i]
+  
+  if(x < (0.65 * sum.leaf.mass)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+  
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("A03W - 65% - Top-Down")+
+  theme_classic()
+
+
+
+```
+
+## A04
+```{r a04, echo=FALSE,  warning = FALSE}
+
+###
+# group plot disturbance
+# A    1          85
+# A    2          45
+# A    3          65
+# A    4           0
+# 
+# Group A Treatment Assignments
+# plot plot.side treatment
+# A1    bottom         E
+# A1       top         W
+# A2       top         E
+# A2    bottom         W
+# A3    bottom         E
+# A3       top         W
+# A4       top         W
+# A4    bottom         E
+##################
+message("A04E, 0%, Control")
+
+  stem %>%
+  filter(SubplotID == "A04E") %>%
+  arrange(leaf.mass) -> df
+
+sum.leaf.mass <- sum(df$leaf.mass)
+
+
+# they all live
+df$fate <- "live"
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_shape_manual(values=c(19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("A04E - Control")+
+  theme_classic()
+#####################################
+message("A04W, 0%, Control")
+  stem %>%
+  filter(SubplotID == "A04W") %>%
+  arrange(-leaf.mass) -> df.big
+
+sum.leaf.mass <- sum(df.big$leaf.mass)
+
+
+# looping in
+x <- 0
+
+# they all live
+df.big$fate <- "live"
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_shape_manual(values=c(19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("A04W, 0%, Control")+
+  theme_classic()
+
+
+
+```

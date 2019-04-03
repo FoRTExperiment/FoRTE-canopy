@@ -1,0 +1,160 @@
+---
+title: "Disturbance Assignment"
+author: "Jeff Atkins"
+date: "July 25, 2018"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+## Disturbance Assignment
+
+The code below outlines the ranodmization procedure for the disturbance treatment.
+```{r parameterization}
+#set random seed
+set.seed(9925)
+
+#define parameters
+w <- c("top", "bottom")
+x <- c("E", "W")  
+y <- c(1, 2, 3, 4)
+z <- c(0, 45, 65, 85)
+
+# example treatment using group A
+# all other groups simulated in identical fashion
+# then merged at the end of file and written to .csv
+plot.disturbance.a <- data.frame(group = "A", plot = sample(y), disturbance = sample(z))
+plot.disturbance.a <- plot.disturbance.a[order(plot.disturbance.a$plot),]
+
+# randomization of how which side E = east or W = west is chosen for
+# top = top-down or bottom - bottom-up treatment
+plot.treatment <- data.frame(plot.side = sample(w), treatment = sample(x))
+```
+
+## Group A
+
+```{r group_a echo = FALSE}
+message("Assigned Disturbance Level Per Plot - Group A")
+print(plot.disturbance.a, row.names = FALSE)
+
+#message("Plot A1")
+A1 <- data.frame(plot = "A1", plot.side = sample(w), treatment = sample(x))
+#print(A1, row.names = FALSE)
+
+#message("Plot A2")
+A2 <- data.frame(plot = "A2", plot.side = sample(w), treatment = sample(x))
+#print(A2, row.names = FALSE)
+
+#message("Plot A3")
+A3 <- data.frame(plot = "A3", plot.side = sample(w), treatment = sample(x))
+#print(A3, row.names = FALSE)
+
+#message("Plot A4")
+A4 <- data.frame(plot = "A4", plot.side = sample(w), treatment = sample(x))
+#print(A4, row.names = FALSE)
+
+group.a <- rbind(A1, A2, A3, A4)
+
+message("Group A Treatment Assignments")
+print(group.a, row.names = FALSE)
+```
+
+## Group B
+
+```{r group_b echo = FALSE}
+plot.disturbance.b <- data.frame(group = "B", plot = sample(y), disturbance = sample(z))
+plot.disturbance.b <- plot.disturbance.b[order(plot.disturbance.b$plot),]
+
+message("Assigned Disturbance Level Per Plot - Group B")
+print(plot.disturbance.b, row.names = FALSE)
+
+#message("Plot A1")
+B1 <- data.frame(plot = "B1", plot.side = sample(w), treatment = sample(x))
+#print(A1, row.names = FALSE)
+
+#message("Plot A2")
+B2 <- data.frame(plot = "B2", plot.side = sample(w), treatment = sample(x))
+#print(A2, row.names = FALSE)
+
+#message("Plot A3")
+B3 <- data.frame(plot = "B3", plot.side = sample(w), treatment = sample(x))
+#print(A3, row.names = FALSE)
+
+#message("Plot A4")
+B4 <- data.frame(plot = "B4", plot.side = sample(w), treatment = sample(x))
+#print(A4, row.names = FALSE)
+
+group.b <- rbind(B1, B2, B3, B4)
+
+message("Group B Treatment Assignments")
+print(group.b, row.names = FALSE)
+```
+
+## Group C
+
+```{r group_c echo = FALSE}
+plot.disturbance.c <- data.frame(group = "C", plot = sample(y), disturbance = sample(z))
+plot.disturbance.c <- plot.disturbance.c[order(plot.disturbance.c$plot),]
+
+message("Assigned Disturbance Level Per Plot - Group C")
+print(plot.disturbance.c, row.names = FALSE)
+
+#message("Plot A1")
+C1 <- data.frame(plot = "C1", plot.side = sample(w), treatment = sample(x))
+#print(A1, row.names = FALSE)
+
+#message("Plot A2")
+C2 <- data.frame(plot = "C2", plot.side = sample(w), treatment = sample(x))
+#print(A2, row.names = FALSE)
+
+#message("Plot A3")
+C3 <- data.frame(plot = "C3", plot.side = sample(w), treatment = sample(x))
+#print(A3, row.names = FALSE)
+
+#message("Plot A4")
+C4 <- data.frame(plot = "C4", plot.side = sample(w), treatment = sample(x))
+#print(A4, row.names = FALSE)
+
+group.c <- rbind(C1, C2, C3, C4)
+
+message("Group C Treatment Assignments")
+print(group.c, row.names = FALSE)
+```
+
+## Group D
+
+```{r group_d echo = FALSE}
+plot.disturbance.d <- data.frame(group = "D", plot = sample(y), disturbance = sample(z))
+plot.disturbance.d <- plot.disturbance.d[order(plot.disturbance.d$plot),]
+
+message("Assigned Disturbance Level Per Plot - Group D")
+print(plot.disturbance.d, row.names = FALSE)
+
+#message("Plot A1")
+D1 <- data.frame(plot = "D1", plot.side = sample(w), treatment = sample(x))
+#print(A1, row.names = FALSE)
+
+#message("Plot A2")
+D2 <- data.frame(plot = "D2", plot.side = sample(w), treatment = sample(x))
+#print(A2, row.names = FALSE)
+
+#message("Plot A3")
+D3 <- data.frame(plot = "D3", plot.side = sample(w), treatment = sample(x))
+#print(A3, row.names = FALSE)
+
+#message("Plot A4")
+D4 <- data.frame(plot = "D4", plot.side = sample(w), treatment = sample(x))
+#print(A4, row.names = FALSE)
+
+group.d <- rbind(D1, D2, D3, D4)
+
+message("Group A Treatment Assignments")
+print(group.d, row.names = FALSE)
+```
+

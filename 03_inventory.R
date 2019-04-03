@@ -104,8 +104,6 @@ waffle(D/10, rows=5, size=0.5,
        xlab="1 square == 10 Individuals")
 
 
-savings <- c(`Mortgage ($84,911)`=84911, `Auto andntuition loans ($14,414)`=14414, 
-             `Home equity loans ($10,062)`=10062, `Credit Cards ($8,565)`=8565)
 waffle(savings/392, rows=7, size=0.5, 
        colors=c("#c7d4b6", "#a3aabd", "#a0d0de", "#97b5cf"), 
        title="Average Household Savings Each Year", 
