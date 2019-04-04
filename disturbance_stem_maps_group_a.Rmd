@@ -3,8 +3,8 @@ title: "Disturbance Stem Maps"
 author: "Jeff Atkins"
 date: "April 3, 2019"
 output:
-  html_document: default
   word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE, message = FALSE, warning = FALSE}
@@ -28,6 +28,8 @@ require(tidyverse)
 require(ggforce)
 require(splitstackshape)
 require(data.table)
+library(forcats)
+require(ggridges)
 
 # The palette with black:
 cbbPalette <-c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d", "#666666")
@@ -147,6 +149,7 @@ stem$genus[stem$Species == "POGR"] <- "Populus"
 stem$genus[stem$Species == "POTR"] <- "Populus"
 stem$genus[stem$Species == "unknown"] <- "Other"
 
+stem$genus <- as.factor(stem$genus)
 ```
 
 ## A01
@@ -198,7 +201,7 @@ table(df$fate)
 
 ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
@@ -234,14 +237,14 @@ table(df.big$fate)
 
 ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (leaf.mass/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
   ggtitle("A01W - 85% - Top-Down")+
   theme_classic()
 
-ao1 <- rbind(df.big, df)
+a01 <- rbind(df.big, df)
 ```
 
 ## A02
@@ -293,11 +296,11 @@ table(df.big$fate)
 
 ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
-  ggtitle("A01E - 45% - Top-Down")+
+  ggtitle("A02E - 45% - Top-Down")+
   theme_classic()
 
 ##################
@@ -329,7 +332,7 @@ table(df$fate)
 
 ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
@@ -389,14 +392,14 @@ table(df$fate)
 
 ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
   ggtitle("A03E - 65% - Bottom-Up")+
   theme_classic()
 #####################################
-message("A02E, 45%, top-down")
+message("A03W, 45%, top-down")
   stem %>%
   filter(SubplotID == "A03W") %>%
   arrange(-leaf.mass) -> df.big
@@ -423,7 +426,7 @@ table(df.big$fate)
 
 ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
@@ -473,7 +476,7 @@ table(df$fate)
 
 ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
@@ -499,7 +502,7 @@ table(df.big$fate)
 
 ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
@@ -509,4 +512,84 @@ ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = 
 #
 a04 <- rbind(df, df.big)
 
+```
+
+```{r bigtime, echo=FALSE, warning = FALSE}
+big.boi <- rbind(a01, a02, a03, a04)
+
+big.boi$plot.side <- substr(big.boi$SubplotID, 4,4)
+
+#remove weird na
+big.boi <- big.boi[!is.na(big.boi$leaf.mass),]
+
+big.boi %>%
+  mutate(YearFct = fct_rev(as.factor(SubplotID))) %>%
+  ggplot(aes( y = YearFct))+
+  geom_density_ridges(
+    aes(x = leaf.mass, fill = fate), 
+    alpha = .85, color = "white", from = 0, to = 30
+  )+
+  labs(
+    x = "Leaf Mass (Kg)",
+    y = "Suplot ID",
+    title = "",
+    subtitle = "Disturbance"
+    #caption = "Marc Belzunces (@marcbeldata) | Source: Idescat"
+  ) +
+  scale_y_discrete(expand = c(0.01, 0)) +
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_fill_cyclical(
+    # breaks = c("A01E live", "kill"),
+    # labels = c(`A01E live` = "Live", `A01E kill` = "Kill"),
+    values = c("#E57200", "#232D4B", "#E57200", "#232D4B"),
+    name = "Fate", guide = "legend"
+  ) +
+  theme_ridges(grid = FALSE)
+
+
+#### Write this to file
+write.csv(big.boi, "group_a_disturbance_treatment_output.csv")
+
+message("Total mortality count")
+table(big.boi$fate)
+death <- length(which(big.boi == "kill"))
+total.death <- (death / 2) * 5
+
+message("Estimated total number of trees killed for all 0.5 ha plots combined in Group A")
+print(total.death)
+
+# get percentage leaf.mass
+big.boi %>%
+  group_by(SubplotID) %>%
+  filter(fate == "live") %>%
+  summarise(live.leaf.mass = sum(leaf.mass)) -> life.table
+
+big.boi %>%
+  group_by(SubplotID) %>%
+  filter(fate == "kill") %>%
+  summarise(kill.leaf.mass = sum(leaf.mass)) -> kill.table
+
+#merge
+death.table <- merge(life.table, kill.table, all.x = TRUE)
+death.table <- data.frame(death.table)
+death.table[is.na(death.table)] <- 0
+
+
+death.table$live.prop <- death.table$live.leaf.mass / (death.table$live.leaf.mass + death.table$kill.leaf.mass)
+death.table$kill.prop <- death.table$kill.leaf.mass / (death.table$live.leaf.mass + death.table$kill.leaf.mass)
+
+
+# make tidy
+death.table %>% gather(fate, prop, live.prop:kill.prop) -> tidy.death
+
+tidy.death$prop <- round(tidy.death$prop, 2)
+  
+#####
+ggplot(data = tidy.death, aes(x = SubplotID, y = prop, fill = fate, label = prop)) +
+    geom_bar(stat="identity", alpha = 0.7)+
+    geom_text(size = 3, position = position_stack(vjust = 0.5))+
+  theme_classic()+
+  scale_fill_manual(values=c("#E57200", "#232D4B"))+
+  xlab("")+
+  ylab("Proportion")
 ```

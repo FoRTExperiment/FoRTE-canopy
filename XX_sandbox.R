@@ -147,3 +147,56 @@ jenny <- data.frame(x, y, z, a)
 A01.treatment <- data.frame(plot.side = sample(w), treatment = sample(v))
 A01.disturbance <- data.frame(plot = sample(x), disturbance = sample(z))
 A01.disturbance <- A01.disturbance[order(A01.disturbance$plot),]
+
+
+
+
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+# ggplot2 library
+library(ggplot2)
+
+# Let's use the diamonds dataset
+data(diamonds)
+head(diamonds)
+
+# plot 1: Density of price for each type of cut of the diamond:
+ggplot(data=diamonds,aes(x=price, group=cut, fill=cut)) + 
+  geom_density(adjust=1.5)
+
+# plot 2: Density plot with transparency (using the alpha argument):
+ggplot(data=diamonds,aes(x=price, group=cut, fill=cut)) + 
+  geom_density(adjust=1.5 , alpha=0.2)
+
+# plot 3: Stacked density plot:
+ggplot(data=diamonds,aes(x=price, group=cut, fill=cut)) + 
+  geom_density(adjust=1.5, position="fill")
+
+# plot 4
+ggplot(diamonds, aes(x=depth, y=..density..)) + 
+  geom_density(aes(fill=cut), position="stack") +
+  xlim(50,75) + 
+  theme(legend.position="none")
