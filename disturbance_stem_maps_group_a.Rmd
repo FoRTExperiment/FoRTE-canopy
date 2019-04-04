@@ -30,7 +30,7 @@ require(splitstackshape)
 require(data.table)
 
 # The palette with black:
-cbbPalette <-c("#e6194B",  "#ffe119", "#4363d8", "#f58231", "#fabebe", "#469990",  "#9A6324", "#800000",  "#000075", "#a9a9a9",  "#000000", "#333333", "#666666", "#444444")
+cbbPalette <-c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d", "#666666")
 
 
 #bring in inventory data
@@ -130,6 +130,23 @@ stem <- merge(stem, allo.fl)
 stem$leaf.mass <- stem$a * (stem$dbh^stem$b)
 
 stem <- droplevels(stem)
+
+
+attach(stem)
+stem$genus[stem$Species == "ACPE"] <- "Acer"
+stem$genus[stem$Species == "ACRU"] <- "Acer"
+stem$genus[stem$Species == "ACSA"] <- "Acer"
+stem$genus[stem$Species == "BEPA"] <- "Betula"
+stem$genus[stem$Species == "PIRE"] <- "Pinus"
+stem$genus[stem$Species == "PIST"] <- "Pinus"
+stem$genus[stem$Species == "QURU"] <- "Quercus"
+stem$genus[stem$Species == "AMEL"] <- "Other"
+stem$genus[stem$Species == "TSCA"] <- "Tsuga"
+stem$genus[stem$Species == "FAGR"] <- "Fagus"
+stem$genus[stem$Species == "POGR"] <- "Populus"
+stem$genus[stem$Species == "POTR"] <- "Populus"
+stem$genus[stem$Species == "unknown"] <- "Other"
+
 ```
 
 ## A01
@@ -179,7 +196,7 @@ for (i in 1:nrow(df)) {
 #loook at output
 table(df$fate)
 
-ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
   scale_shape_manual(values=c(1, 19))+
@@ -215,7 +232,7 @@ for (i in 1:nrow(df.big)) {
 #loook at output
 table(df.big$fate)
 
-ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (leaf.mass/10), color = Species, shape = fate)) +
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (leaf.mass/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
   scale_shape_manual(values=c(1, 19))+
@@ -224,7 +241,7 @@ ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (leaf.mass/10), co
   ggtitle("A01W - 85% - Top-Down")+
   theme_classic()
 
-
+ao1 <- rbind(df.big, df)
 ```
 
 ## A02
@@ -274,7 +291,7 @@ for (i in 1:nrow(df.big)) {
 #loook at output
 table(df.big$fate)
 
-ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
   scale_shape_manual(values=c(1, 19))+
@@ -310,7 +327,7 @@ for (i in 1:nrow(df)) {
 #loook at output
 table(df$fate)
 
-ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
   scale_shape_manual(values=c(1, 19))+
@@ -319,6 +336,7 @@ ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Spec
   ggtitle("A02W - 45% - Bottom-Up")+
   theme_classic()
 
+a02 <- rbind(df.big, df)
 ```
 
 ## A03
@@ -369,7 +387,7 @@ for (i in 1:nrow(df)) {
 table(df$fate)
 
 
-ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
   scale_shape_manual(values=c(1, 19))+
@@ -403,7 +421,7 @@ for (i in 1:nrow(df.big)) {
 #loook at output
 table(df.big$fate)
 
-ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
   scale_shape_manual(values=c(1, 19))+
@@ -412,7 +430,8 @@ ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = 
   ggtitle("A03W - 65% - Top-Down")+
   theme_classic()
 
-
+#merge
+a03 <- rbind(df, df.big)
 
 ```
 
@@ -452,7 +471,7 @@ df$fate <- "live"
 #loook at output
 table(df$fate)
 
-ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
   scale_shape_manual(values=c(19))+
@@ -478,7 +497,7 @@ df.big$fate <- "live"
 #loook at output
 table(df.big$fate)
 
-ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = Species, shape = fate)) +
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genus, shape = fate)) +
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$Species))+
   scale_shape_manual(values=c(19))+
@@ -487,6 +506,7 @@ ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = 
   ggtitle("A04W, 0%, Control")+
   theme_classic()
 
-
+#
+a04 <- rbind(df, df.big)
 
 ```
