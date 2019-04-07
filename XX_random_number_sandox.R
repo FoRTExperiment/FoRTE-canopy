@@ -1,4 +1,58 @@
 library(blockTools)
+require(plyr)
+require(dplyr)
+#
+###########
+
+#create data frame elements
+rep <- c("A") #start with rep A
+plot <- c(1,2,3,4)  #no of plots
+subplot <- c("E") #east side first
+w <- c(0, 45, 65, 85) #severity levels
+v <- c("T", "B")  #treatments
+
+#create data frame
+z <- data.frame(rep, plot, subplot)
+
+#randomly assigns treatment and severity levels
+z$treatment <- base::sample(v)
+z$severity <- base::sample(w)
+
+#create z.east that is the east side
+z.east <- z
+
+#west
+z$subplot <- as.character(z$subplot)
+z$subplot[z$subplot == "E"] <- "W"
+z$treatment <- switch(z$treatment, "T" = "B", "B" = "T") 
+z.east <- slice(z, sample(1:n()))
+df2 <- sample_frac(z, 1L)
+df2 <- transform(z, z$treatment = sample(w) )
+
+#westside
+y <- c("W")
+z <- data.frame(plot, x, y, w)
+
+colnames(z)<- c("replicate", "plot","subplot", "treatment")
+z.west <- slice(z, sample(1:n()))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Load built-in dataset
 data(HairEyeColor)
