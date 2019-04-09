@@ -3,10 +3,10 @@ title: "disturbance_stem_maps_group_c"
 author: "Jeff Atkins"
 date: "April 4, 2019"
 output:
-  word_document: default
   pdf_document: default
   html_document:
     df_print: paged
+  word_document: default
 ---
 
 ```{r setup, include=FALSE, message = FALSE, warning = FALSE}
@@ -288,7 +288,7 @@ ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genu
 ######################
 
 ##################
-message("C02W, 45%, Top-Down")
+message("C02W, 65%, Top-Down")
 
   stem %>%
   filter(SubplotID == "C02W") %>%

@@ -38,4 +38,8 @@ disturbed$uniqueID <- paste(disturbed$SubplotID, disturbed$Tag, sep = ".")
 
 #create fate column
 dendro.list$fate <- disturbed$fate[match(dendro.list$uniqueID, disturbed$uniqueID)]
-table1$val2 <- table2$val2[match(table1$pid, table2$pid)]
+
+
+table(dendro.list$fate, dendro.list$SubplotID)
+
+summary(dendro.list$fate)

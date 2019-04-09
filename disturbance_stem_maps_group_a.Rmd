@@ -3,8 +3,9 @@ title: "Disturbance Stem Maps"
 author: "Jeff Atkins"
 date: "April 3, 2019"
 output:
-  word_document: default
+  pdf_document: default
   html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE, message = FALSE, warning = FALSE}
@@ -399,7 +400,7 @@ ggplot(data = df, aes(x = Longitude, y = Latitude, size = (dbh/10), color = genu
   ggtitle("A03E - 65% - Bottom-Up")+
   theme_classic()
 #####################################
-message("A03W, 45%, top-down")
+message("A03W, 65%, top-down")
   stem %>%
   filter(SubplotID == "A03W") %>%
   arrange(-leaf.mass) -> df.big

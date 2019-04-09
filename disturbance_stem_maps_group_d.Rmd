@@ -3,10 +3,10 @@ title: "disturbance_stem_maps_group_d"
 author: "Jeff Atkins"
 date: "April 4, 2019"
 output:
-  word_document: default
   pdf_document: default
   html_document:
     df_print: paged
+  word_document: default
 ---
 
 ```{r setup, include=FALSE, message = FALSE, warning = FALSE}
@@ -473,7 +473,7 @@ ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = (dbh/10), color = 
 message("D04W, 65%, Bottom-Down")
 
   stem %>%
-  filter(SubplotID == "D04W") %>%
+  filter(SubplotID == "D04W" & dbh >= 8) %>%
   arrange(leaf.mass) -> df
 
 sum.leaf.mass <- sum(df$leaf.mass)
