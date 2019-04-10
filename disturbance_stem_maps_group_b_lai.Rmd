@@ -1,0 +1,657 @@
+---
+title: "disturbance_stem_maps_group_b"
+author: "Jeff Atkins"
+date: "April 4, 2019"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Disturbance Stem Maps
+
+The following document produces stem maps that assign mortality and treatments 
+DRAFT
+DRAFT
+DRAFT
+
+```{r inventory, echo = FALSE, message = FALSE, warning = FALSE}
+# loading the required packages
+library(ggplot2)
+library(ggmap)
+require(plyr)
+require(dplyr)
+require(tidyverse)
+require(ggforce)
+require(splitstackshape)
+require(data.table)
+library(forcats)
+require(ggridges)
+
+# The palette with black:
+cbbPalette <-c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6aC02", "#a6761d", "#666666")
+
+
+#bring in inventory data
+
+#set data directory
+data_dir <- "./data/inventory/"
+
+#merge a bunch of .csvs
+multmerge = function(path){
+  filenames=list.files(path=path, full.names=TRUE)
+  rbindlist(lapply(filenames, fread))
+}
+
+#importing all the data
+inventory <- multmerge(data_dir)
+
+#convert to data frame
+inventory <- as(inventory, "data.frame")
+inventory$Tag <- as.factor(inventory$Tag)
+
+inventory <- na.omit(inventory, cols = "Subplot")
+#
+
+#adding subplot
+source("./code/addNewData.r")
+allowedVars <- c("SubplotID")
+
+#add subplot
+df <- addNewData("./data/inventory_lookup_table.csv", inventory, allowedVars)
+
+#remove empty lines from haglof
+
+inventory <- na.omit(inventory, cols = "Tag")
+#
+df$group <- as.factor(substr(df$SubplotID, 0, 1))
+
+#
+df$plotID <- as.factor(substr(df$SubplotID, 1, 3))
+
+# cleaning up df
+names(df)[names(df) == "DBH_cm"] <- "dbh"
+df$dbh <- as.numeric(df$dbh)
+df$SubplotID <- as.factor(df$SubplotID)
+df$Species <- as.factor(df$Species)
+
+
+# merge with spatial data
+# using plot A01W
+data_dir <- "./data/haglof/"
+
+#import all the .csv files
+spatial.data <- multmerge(data_dir)
+
+# make a data frame
+spatial.data <- as(spatial.data, "data.frame")
+
+#rename columns
+names(spatial.data)[1] <- "Subplot"
+names(spatial.data)[2] <- "Plot_Radius"
+names(spatial.data)[3] <- "Tag"
+names(spatial.data)[4] <- "Tree_Spc"
+names(spatial.data)[5] <- "Tree_Dia"
+names(spatial.data)[6] <- "Tree_Hgt"
+names(spatial.data)[7] <- "Tree_PosTex1"
+names(spatial.data)[8] <- "Tree_PosTex2"
+names(spatial.data)[9] <- "Tree_PosTex3"
+names(spatial.data)[10] <- "Tree_Local_x"
+names(spatial.data)[11] <- "Tree_Local_y"
+names(spatial.data)[12] <- "Tree_Local_Dist"
+names(spatial.data)[13] <- "Tree_Local_Angle"
+names(spatial.data)[14] <- "Tree_Angle_ToPlotCenter"
+names(spatial.data)[15] <- "Latitude"
+names(spatial.data)[16] <- "Longitude"
+names(spatial.data)[17] <- "Tree_Nr"
+
+
+spatial.data %>%
+  select("Subplot", "Tag", "Latitude", "Longitude") -> jim
+
+#merging
+stem <-  merge(df, jim, all.x = TRUE)
+
+# cleaning up missing data
+stem$Species[stem$Species == "FAGR#"] <- "FAGR"
+stem$Species[stem$Species == "POGR ?"] <- "POGR"
+stem$Species[stem$Species == "TSCA ?"] <- "TSCA"
+stem$Species[stem$Species == "?"] <- "unknown"
+stem$Species[stem$Species == "UNKNOWN"] <- "unknown"
+stem$Species[stem$Species == "QUR"] <- "QURU"
+stem$Species[stem$Species == "ADRU"] <- "ACRU"
+#
+stem <- subset(stem, Species != "snag")
+#
+#bring in conversion to leaf area
+allo.df <- read.csv("./data/dbh_to_leaf_area_conversions.csv")
+
+allo.df %>%
+  filter(component == "FL") -> allo.fl
+stem <- merge(stem, allo.fl)
+
+stem$leaf.mass <- stem$a * (stem$dbh^stem$b)
+
+stem <- droplevels(stem)
+
+
+attach(stem)
+stem$genus[stem$Species == "ACPE"] <- "Acer"
+stem$genus[stem$Species == "ACRU"] <- "Acer"
+stem$genus[stem$Species == "ACSA"] <- "Acer"
+stem$genus[stem$Species == "BEPA"] <- "Betula"
+stem$genus[stem$Species == "PIRE"] <- "Pinus"
+stem$genus[stem$Species == "PIST"] <- "Pinus"
+stem$genus[stem$Species == "QURU"] <- "Quercus"
+stem$genus[stem$Species == "AMEL"] <- "Other"
+stem$genus[stem$Species == "TSCA"] <- "Tsuga"
+stem$genus[stem$Species == "FAGR"] <- "Fagus"
+stem$genus[stem$Species == "POGR"] <- "Populus"
+stem$genus[stem$Species == "POTR"] <- "Populus"
+stem$genus[stem$Species == "unknown"] <- "Other"
+
+stem$genus <- as.factor(stem$genus)
+
+attach(stem)
+stem$sla[stem$genus == "Acer"] <- 19
+stem$sla[stem$genus == "Betula"] <- 20.82
+stem$sla[stem$Species == "PIRE"] <- 5.39 #penner and deblonde ref.
+stem$sla[stem$Species == "PIST"] <- 12.5 #abrams & kubiske, 1990
+stem$sla[stem$genus == "Quercus"] <- 14.2
+stem$sla[stem$genus == "Other"] <- 19
+stem$sla[stem$genus == "Tsuga"] <- 5.84
+stem$sla[stem$genus == "Fagus"] <- 35
+stem$sla[stem$genus == "Populus"] <- 15.89
+
+stem$leaf.area <- stem$leaf.mass * stem$sla
+
+
+
+
+
+```
+
+## B01
+
+```{r B01, echo=FALSE,  warning = FALSE}
+#    C4    bottom         W
+
+##################
+message("B01E, 0%, Control")
+
+  stem %>%
+  filter(SubplotID == "B01E" & Health_status != "D") %>%
+  arrange(dbh) -> df
+
+# plot lai
+sum.leaf.area<- sum(df$leaf.area)
+
+message("Plot LAI ")
+B01E.lai <- sum.leaf.area/ 1000
+print(B01E.lai)
+
+# they all live
+df$fate <- "live"
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B01E - Control")+
+  theme_classic()
+
+
+#####################################
+message("B01W, 0%, Control")
+  stem %>%
+  filter(SubplotID == "B01W") %>%
+  arrange(-dbh) -> df.big
+
+sum.leaf.area<- sum(df$leaf.area)
+
+# looping in
+x <- 0
+
+# they all live
+df.big$fate <- "live"
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B01W, 0%, Control")+
+  theme_classic()
+
+B01 <- rbind(df, df.big)
+
+# plot LAI
+message("Plot LAI")
+B01W.lai <- sum.leaf.area/ 1000
+print(B01W.lai)
+
+```
+
+## B02
+
+```{r B02, echo=FALSE,  warning = FALSE}
+# Group b
+#####################################
+message("B02W, 45%, bottom-down")
+  stem %>%
+  filter(SubplotID == "B02W" & Health_status != "D") %>%
+  arrange(dbh) -> df
+
+sum.leaf.area<- sum(df$leaf.area)
+
+# counter
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$leaf.area[i]
+  
+  if(x < (0.45 * sum.leaf.area)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  ggtitle("B02W - 45% - Bottom-Up")+
+  theme_classic()
+
+# plot LAI
+message("Plot LAI")
+B02W.lai <- sum.leaf.area/ 1000
+print(B02W.lai)
+# compare
+df %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> B02W.dead.lai
+message("LAI of all trees to Kill")
+print(B02W.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targetting 65% Disturbance threshold")
+B02W.ratio.lai <- B02W.dead.lai/B02W.lai
+print(B02W.ratio.lai)
+##################
+message("B02E, 45%, Top-Down")
+
+  stem %>%
+  filter(SubplotID == "B02E" & Health_status != "D") %>%
+  arrange(-dbh) -> df.big
+
+sum.leaf.area <- sum(df.big$leaf.area)
+
+# counter
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf.area[i]
+  
+  if(x < (0.45 * sum.leaf.area)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B02E - 45% - Top-Down")+
+  theme_classic()
+
+#
+# plot LAI
+message("Plot LAI B02E")
+B02E.lai <- sum.leaf.area/ 1000
+print(B02E.lai)
+
+# compare
+df.big %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> B02E.dead.lai
+message("LAI of all trees to Kill")
+print(B02E.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targeting 45% Disturbance threshold")
+B02E.ratio.lai <- B02E.dead.lai/B02E.lai
+print(B02E.ratio.lai)
+
+#
+B02 <- rbind(df, df.big)
+```
+
+## B03
+```{r B03, echo=FALSE,  warning = FALSE}
+# Group C
+##################
+message("B03E, 85%, Bottom-Up")  
+  stem %>%
+  filter(SubplotID == "B03E" & Health_status != "D") %>%
+  arrange(dbh) -> df
+
+sum.leaf.area <- sum(df$leaf.area)
+
+# counter
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$leaf.area[i]
+  
+  if(x < (0.85 * sum.leaf.area)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B03E - 85% - Bottom-Up")+
+  theme_classic()
+
+# plot LAI
+message("Plot LAI B02W")
+B03E.lai <- sum.leaf.area/ 1000
+print(B03E.lai)
+
+# compare
+df %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> B03E.dead.lai
+message("LAI of all trees to Kill")
+print(B03E.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targeting 85% Disturbance threshold")
+B03E.ratio.lai <- B03E.dead.lai/B03E.lai
+print(B03E.ratio.lai)
+
+################################## 
+message("B03W, 85%, Top-Down")  
+
+stem %>%
+  filter(SubplotID == "B03W" & Health_status != "D") %>%
+  arrange(-dbh) -> df.big
+
+sum.leaf.area <- sum(df.big$leaf.area)
+
+# counter
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf.area[i]
+  
+  if(x < (0.85 * sum.leaf.area)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B03W - 85% - Top-Down")+
+  theme_classic()
+
+# plot LAI
+message("Plot LAI B03W")
+B03W.lai <- sum.leaf.area/ 1000
+print(B03W.lai)
+
+# compare
+df.big %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> B03W.dead.lai
+message("LAI of all trees to Kill")
+print(B03W.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targeting 85% Disturbance threshold")
+B03W.ratio.lai <- B03W.dead.lai/B03W.lai
+print(B03W.ratio.lai)
+
+#
+B03 <- rbind(df, df.big)
+```
+
+## B04
+```{r B04, echo=FALSE,  warning = FALSE}
+# Group C
+
+##################
+message("B04E, 65%, top-down")
+  stem %>%
+  filter(SubplotID == "B04E" & Health_status != "D") %>%
+  arrange(-dbh) -> df.big
+
+sum.leaf.area <- sum(df.big$leaf.area)
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf.area[i]
+  
+  if(x < (0.65 * sum.leaf.area)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B04E - 65% - Top-Down")+
+  theme_classic()
+
+# plot LAI
+message("Plot LAI B04E")
+B04E.lai <- sum.leaf.area/ 1000
+print(B04E.lai)
+
+# compare
+df.big %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> B04E.dead.lai
+message("LAI of all trees to Kill")
+print(B04E.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targeting 65% Disturbance threshold")
+B04E.ratio.lai <- B04E.dead.lai/B04E.lai
+print(B04E.ratio.lai)
+
+#####################
+message("B04W, 65%, Bottom-Down")
+
+  stem %>%
+  filter(SubplotID == "B04W" & dbh >= 8 & Health_status != "D") %>%
+  arrange(dbh) -> df
+
+sum.leaf.area <- sum(df$leaf.area)
+
+# looping in
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$leaf.area[i]
+  
+  if(x < (0.65 * sum.leaf.area)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("B04W - 65% - Bottom-Up")+
+  theme_classic()
+#####################################
+# plot LAI
+message("Plot LAI B04W")
+B04W.lai <- sum.leaf.area/ 1000
+print(B04W.lai)
+
+# compare
+df %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> B04W.dead.lai
+message("LAI of all trees to Kill")
+print(B04W.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targeting 65% Disturbance threshold")
+B04W.ratio.lai <- B04W.dead.lai/B04W.lai
+print(B04W.ratio.lai)
+
+B04 <- rbind(df, df.big)
+
+```
+
+
+```{r bigtime, echo=FALSE, warning = FALSE}
+big.boi <- rbind(B01, B02, B03, B04)
+
+big.boi$plot.side <- substr(big.boi$SubplotID, 4,4)
+
+#remove weird na
+big.boi <- big.boi[!is.na(big.boi$leaf.mass),]
+
+big.boi %>%
+  mutate(YearFct = fct_rev(as.factor(SubplotID))) %>%
+  ggplot(aes( y = YearFct))+
+  geom_density_ridges(
+    aes(x = leaf.area, fill = fate), 
+    alpha = .85, color = "white", from = 0, to = 1000
+  )+
+  labs(
+    x = "Leaf Area",
+    y = "Suplot ID",
+    title = "",
+    subtitle = "Disturbance"
+    #caption = "Marc Belzunces (@marcbeldata) | Source: Idescat"
+  ) +
+  scale_y_discrete(expand = c(0.01, 0)) +
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_fill_cyclical(
+    # breaks = c("A01E live", "kill"),
+    # labels = c(`A01E live` = "Live", `A01E kill` = "Kill"),
+    values = c("#E57200", "#232D4B", "#E57200", "#232D4B"),
+    name = "Fate", guide = "legend"
+  ) +
+  theme_ridges(grid = FALSE)
+
+
+#### Write this to file
+write.csv(big.boi, "group_B_lai_disturbance_treatment_output.csv")
+
+message("Total mortality count")
+table(big.boi$fate)
+death <- length(which(big.boi == "kill"))
+total.death <- (death / 2) * 5
+
+message("Estimated total number of trees killed for all 0.5 ha plots combined in Group C")
+print(total.death)
+
+# get percentage leaf.mass
+big.boi %>%
+  group_by(SubplotID) %>%
+  filter(fate == "live") %>%
+  summarise(live.lai = sum(leaf.area)) -> life.table
+
+big.boi %>%
+  group_by(SubplotID) %>%
+  filter(fate == "kill") %>%
+  summarise(kill.lai = sum(leaf.area)) -> kill.table
+
+#merge
+death.table <- merge(life.table, kill.table, all.x = TRUE)
+death.table <- data.frame(death.table)
+death.table[is.na(death.table)] <- 0
+
+
+death.table$live.prop <- death.table$live.lai / (death.table$live.lai + death.table$kill.lai)
+death.table$kill.prop <- death.table$kill.lai / (death.table$live.lai + death.table$kill.lai)
+
+
+# make tidy
+death.table %>% gather(fate, prop, live.prop:kill.prop) -> tidy.death
+
+tidy.death$prop <- round(tidy.death$prop, 2)
+  
+#####
+ggplot(data = tidy.death, aes(x = SubplotID, y = prop, fill = fate, label = prop)) +
+    geom_bar(stat="identity", alpha = 0.7)+
+    geom_text(size = 3, position = position_stack(vjust = 0.5))+
+  theme_classic()+
+  scale_fill_manual(values=c("#E57200", "#232D4B"))+
+  xlab("")+
+  ylab("Proportion")
+```
