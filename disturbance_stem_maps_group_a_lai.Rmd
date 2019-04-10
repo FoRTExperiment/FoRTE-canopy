@@ -177,7 +177,7 @@ stem$leaf.area <- stem$leaf.mass * stem$sla
 ####################################
 message("A01E, 85%, Bottom-Up")  
   stem %>%
-  filter(SubplotID == "A01E") %>%
+  filter(SubplotID == "A01E" & Health_status != "D") %>%
   arrange(dbh) -> df
 
 # plot lai
@@ -231,7 +231,7 @@ print(A01E.ratio.lai)
 message("A01W, 85%, Top-Down")  
 
 stem %>%
-  filter(SubplotID == "A01W") %>%
+  filter(SubplotID == "A01W" & Health_status != "D") %>%
   arrange(-dbh) -> df.big
 
 sum.leaf.area <- sum(df.big$leaf.area)
@@ -292,7 +292,7 @@ a01 <- rbind(df.big, df)
 #####################################
 message("A02E, 45%, top-down")
   stem %>%
-  filter(SubplotID == "A02E") %>%
+  filter(SubplotID == "A02E" & Health_status != "D") %>%
   arrange(-dbh) -> df.big
 
 sum.leaf.area <- sum(df.big$leaf.area)
@@ -346,7 +346,7 @@ print(A02E.ratio.lai)
 message("A02W, 45%, Bottom-Down")
 
   stem %>%
-  filter(SubplotID == "A02W") %>%
+  filter(SubplotID == "A02W" & Health_status != "D") %>%
   arrange(dbh) -> df
 
 sum.leaf.area <- sum(df$leaf.area)
@@ -405,7 +405,7 @@ a02 <- rbind(df.big, df)
 message("A03E, 65%, Bottom-Down")
 
   stem %>%
-  filter(SubplotID == "A03E") %>%
+  filter(SubplotID == "A03E" & Health_status != "D") %>%
   arrange(dbh) -> df
 
 sum.leaf.area <- sum(df$leaf.area)
@@ -458,7 +458,7 @@ print(A03E.ratio.lai)
 #####################################
 message("A03W, 65%, top-down")
   stem %>%
-  filter(SubplotID == "A03W") %>%
+  filter(SubplotID == "A03W" & Health_status != "D") %>%
   arrange(-dbh) -> df.big
 
 sum.leaf.area <- sum(df.big$leaf.area)
