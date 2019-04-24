@@ -3,9 +3,9 @@ title: "disturbance_stem_maps_group_c"
 author: "Jeff Atkins"
 date: "April 4, 2019"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
   word_document: default
 ---
 
