@@ -1,5 +1,5 @@
 ---
-title: "disturbance_stem_maps_group_c"
+title: "disturbance_stem_maps_group_d"
 author: "Jeff Atkins"
 date: "April 4, 2019"
 output:
