@@ -1,5 +1,5 @@
 ---
-title: "disturbance_stem_maps_group_b"
+title: "disturbance_stem_maps_group_c"
 author: "Jeff Atkins"
 date: "April 4, 2019"
 output:
@@ -176,24 +176,40 @@ stem$leaf.area <- stem$leaf.mass * stem$sla
 
 ```
 
-## B01
+## C01
 
-```{r B01, echo=FALSE,  warning = FALSE}
+```{r C01, echo=FALSE,  warning = FALSE}
+# Group C
+# Assigned Disturbance Level Per Plot - Group C
+#  group plot disturbance
+#      C    1           0
+#      C    2          65
+#      C    3          85
+#      C    4          45
+# Group C Treatment Assignments
+#  plot plot.side treatment
+#    C1    bottom         W
+#    C1       top         E
+#    C2    bottom         E
+#    C2       top         W
+#    C3    bottom         E
+#    C3       top         W
+#    C4       top         E
 #    C4    bottom         W
 
 ##################
-message("B01E, 0%, Control")
+message("C01E, 0%, Control")
 
   stem %>%
-  filter(SubplotID == "B01E" & Health_status != "D") %>%
+  filter(SubplotID == "C01E" & Health_status != "D") %>%
   arrange(dbh) -> df
 
 # plot lai
 sum.leaf.area<- sum(df$leaf.area)
 
 message("Plot LAI ")
-B01E.lai <- sum.leaf.area/ 1000
-print(B01E.lai)
+C01E.lai <- sum.leaf.area/ 1000
+print(C01E.lai)
 
 # they all live
 df$fate <- "live"
@@ -207,14 +223,14 @@ ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, sh
   scale_shape_manual(values=c(19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
-  ggtitle("B01E - Control")+
+  ggtitle("C01E - Control")+
   theme_classic()
 
 
 #####################################
-message("B01W, 0%, Control")
+message("C01W, 0%, Control")
   stem %>%
-  filter(SubplotID == "B01W") %>%
+  filter(SubplotID == "C01W") %>%
   arrange(-dbh) -> df.big
 
 sum.leaf.area<- sum(df$leaf.area)
@@ -234,37 +250,41 @@ ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus
   scale_shape_manual(values=c(19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
-  ggtitle("B01W, 0%, Control")+
+  ggtitle("C01W, 0%, Control")+
   theme_classic()
 
-B01 <- rbind(df, df.big)
+C01 <- rbind(df, df.big)
 
 # plot LAI
 message("Plot LAI")
-B01W.lai <- sum.leaf.area/ 1000
-print(B01W.lai)
+C01W.lai <- sum.leaf.area/ 1000
+print(C01W.lai)
 
 ```
 
-## B02
+## C02
 
-```{r B02, echo=FALSE,  warning = FALSE}
-# Group b
+```{r C02, echo=FALSE,  warning = FALSE}
+# Group C
 #####################################
-message("B02W, 45%, bottom-down")
+message("C02E, 65%, bottom-down")
   stem %>%
-  filter(SubplotID == "B02W" & Health_status != "D") %>%
+  filter(SubplotID == "C02E" & Health_status != "D") %>%
   arrange(dbh) -> df
 
 sum.leaf.area<- sum(df$leaf.area)
 
+message("Plot leaf.area")
+C02E.lai <- sum.leaf.area/ 1000
+print(C02E.lai)
+
 # counter
 x <- 0
 
 for (i in 1:nrow(df)) {
   x <- x + df$leaf.area[i]
   
-  if(x < (0.45 * sum.leaf.area)){
+  if(x < (0.65 * sum.leaf.area)){
     df$fate[i] <- "kill"}
   else {
     df$fate[i] <- "live"
@@ -278,35 +298,205 @@ ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, sh
   geom_point(alpha = 1)+
   scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
   scale_shape_manual(values=c(1, 19))+
-  ggtitle("B02W - 45% - Bottom-Up")+
+  ggtitle("C02E - 65% - Bottom-Up")+
   theme_classic()
 
 # plot LAI
 message("Plot LAI")
-B02W.lai <- sum.leaf.area/ 1000
-print(B02W.lai)
+C02E.lai <- sum.leaf.area/ 1000
+print(C02E.lai)
 # compare
 df %>%
   filter(fate == "kill") %>%
   select(leaf.area) %>%
-  sum()/1000 -> B02W.dead.lai
+  sum()/1000 -> C02E.dead.lai
 message("LAI of all trees to Kill")
-print(B02W.dead.lai)
+print(C02E.dead.lai)
 
 # Compare
 message("Ratio of Kill to Live LAI - Targetting 65% Disturbance threshold")
-B02W.ratio.lai <- B02W.dead.lai/B02W.lai
-print(B02W.ratio.lai)
+C02E.ratio.lai <- C02E.dead.lai/C02E.lai
+print(C02E.ratio.lai)
 ##################
-message("B02E, 45%, Top-Down")
+message("C02W, 65%, Top-Down")
 
   stem %>%
-  filter(SubplotID == "B02E" & Health_status != "D") %>%
+  filter(SubplotID == "C02W" & Health_status != "D") %>%
   arrange(-dbh) -> df.big
 
 sum.leaf.area <- sum(df.big$leaf.area)
 
 # counter
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf.area[i]
+  
+  if(x < (0.65 * sum.leaf.area)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("C02W - 65% - Top-Down")+
+  theme_classic()
+
+#
+# plot LAI
+message("Plot LAI C02W")
+C02W.lai <- sum.leaf.area/ 1000
+print(C02W.lai)
+
+# compare
+df.big %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> C02W.dead.lai
+message("LAI of all trees to Kill")
+print(C02W.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targeting 65% Disturbance threshold")
+C02W.ratio.lai <- C02W.dead.lai/C02W.lai
+print(C02W.ratio.lai)
+
+#
+C02 <- rbind(df, df.big)
+```
+
+## C03
+```{r C03, echo=FALSE,  warning = FALSE}
+# Group C
+##################
+message("C03E, 85%, Bottom-Up")  
+  stem %>%
+  filter(SubplotID == "C03E" & Health_status != "D") %>%
+  arrange(dbh) -> df
+
+sum.leaf.area <- sum(df$leaf.area)
+
+# counter
+x <- 0
+
+for (i in 1:nrow(df)) {
+  x <- x + df$leaf.area[i]
+  
+  if(x < (0.85 * sum.leaf.area)){
+    df$fate[i] <- "kill"}
+  else {
+    df$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df$fate)
+
+ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("C03E - 85% - Bottom-Up")+
+  theme_classic()
+
+# plot LAI
+message("Plot LAI C02E")
+C03E.lai <- sum.leaf.area/ 1000
+print(C03E.lai)
+
+# compare
+df %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> C03E.dead.lai
+message("LAI of all trees to Kill")
+print(C03E.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targeting 85% Disturbance threshold")
+C03E.ratio.lai <- C03E.dead.lai/C03E.lai
+print(C03E.ratio.lai)
+
+################################## 
+message("C03W, 85%, Top-Down")  
+
+stem %>%
+  filter(SubplotID == "C03W" & Health_status != "D") %>%
+  arrange(-dbh) -> df.big
+
+sum.leaf.area <- sum(df.big$leaf.area)
+
+# counter
+x <- 0
+
+for (i in 1:nrow(df.big)) {
+  x <- x + df.big$leaf.area[i]
+  
+  if(x < (0.85 * sum.leaf.area)){
+    df.big$fate[i] <- "kill"}
+  else {
+    df.big$fate[i] <- "live"
+  }
+}
+
+#loook at output
+table(df.big$fate)
+
+ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
+  geom_point(alpha = 1)+
+  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
+  scale_shape_manual(values=c(1, 19))+
+  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
+  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
+  ggtitle("C03W - 85% - Top-Down")+
+  theme_classic()
+
+# plot LAI
+message("Plot LAI C03W")
+C03W.lai <- sum.leaf.area/ 1000
+print(C03W.lai)
+
+# compare
+df.big %>%
+  filter(fate == "kill") %>%
+  select(leaf.area) %>%
+  sum()/1000 -> C03W.dead.lai
+message("LAI of all trees to Kill")
+print(C03W.dead.lai)
+
+# Compare
+message("Ratio of Kill to Live LAI - Targeting 85% Disturbance threshold")
+C03W.ratio.lai <- C03W.dead.lai/C03W.lai
+print(C03W.ratio.lai)
+
+#
+C03 <- rbind(df, df.big)
+```
+
+## C04
+```{r c04, echo=FALSE,  warning = FALSE}
+# Group C
+
+##################
+message("C04E, 45%, top-down")
+  stem %>%
+  filter(SubplotID == "C04E" & Health_status != "D") %>%
+  arrange(-dbh) -> df.big
+
+sum.leaf.area <- sum(df.big$leaf.area)
+
+# looping in
 x <- 0
 
 for (i in 1:nrow(df.big)) {
@@ -328,202 +518,32 @@ ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
-  ggtitle("B02E - 45% - Top-Down")+
+  ggtitle("C04E - 45% - Top-Down")+
   theme_classic()
 
-#
 # plot LAI
-message("Plot LAI B02E")
-B02E.lai <- sum.leaf.area/ 1000
-print(B02E.lai)
+message("Plot LAI C04E")
+C04E.lai <- sum.leaf.area/ 1000
+print(C04E.lai)
 
 # compare
 df.big %>%
   filter(fate == "kill") %>%
   select(leaf.area) %>%
-  sum()/1000 -> B02E.dead.lai
+  sum()/1000 -> C04E.dead.lai
 message("LAI of all trees to Kill")
-print(B02E.dead.lai)
-
-# Compare
-message("Ratio of Kill to Live LAI - Targeting 45% Disturbance threshold")
-B02E.ratio.lai <- B02E.dead.lai/B02E.lai
-print(B02E.ratio.lai)
-
-#
-B02 <- rbind(df, df.big)
-```
-
-## B03
-```{r B03, echo=FALSE,  warning = FALSE}
-# Group C
-##################
-message("B03E, 85%, Bottom-Up")  
-  stem %>%
-  filter(SubplotID == "B03E" & Health_status != "D") %>%
-  arrange(dbh) -> df
-
-sum.leaf.area <- sum(df$leaf.area)
-
-# counter
-x <- 0
-
-for (i in 1:nrow(df)) {
-  x <- x + df$leaf.area[i]
-  
-  if(x < (0.85 * sum.leaf.area)){
-    df$fate[i] <- "kill"}
-  else {
-    df$fate[i] <- "live"
-  }
-}
-
-#loook at output
-table(df$fate)
-
-ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
-  geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
-  scale_shape_manual(values=c(1, 19))+
-  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
-  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
-  ggtitle("B03E - 85% - Bottom-Up")+
-  theme_classic()
-
-# plot LAI
-message("Plot LAI B02W")
-B03E.lai <- sum.leaf.area/ 1000
-print(B03E.lai)
-
-# compare
-df %>%
-  filter(fate == "kill") %>%
-  select(leaf.area) %>%
-  sum()/1000 -> B03E.dead.lai
-message("LAI of all trees to Kill")
-print(B03E.dead.lai)
-
-# Compare
-message("Ratio of Kill to Live LAI - Targeting 85% Disturbance threshold")
-B03E.ratio.lai <- B03E.dead.lai/B03E.lai
-print(B03E.ratio.lai)
-
-################################## 
-message("B03W, 85%, Top-Down")  
-
-stem %>%
-  filter(SubplotID == "B03W" & Health_status != "D") %>%
-  arrange(-dbh) -> df.big
-
-sum.leaf.area <- sum(df.big$leaf.area)
-
-# counter
-x <- 0
-
-for (i in 1:nrow(df.big)) {
-  x <- x + df.big$leaf.area[i]
-  
-  if(x < (0.85 * sum.leaf.area)){
-    df.big$fate[i] <- "kill"}
-  else {
-    df.big$fate[i] <- "live"
-  }
-}
-
-#loook at output
-table(df.big$fate)
-
-ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
-  geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
-  scale_shape_manual(values=c(1, 19))+
-  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
-  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
-  ggtitle("B03W - 85% - Top-Down")+
-  theme_classic()
-
-# plot LAI
-message("Plot LAI B03W")
-B03W.lai <- sum.leaf.area/ 1000
-print(B03W.lai)
-
-# compare
-df.big %>%
-  filter(fate == "kill") %>%
-  select(leaf.area) %>%
-  sum()/1000 -> B03W.dead.lai
-message("LAI of all trees to Kill")
-print(B03W.dead.lai)
-
-# Compare
-message("Ratio of Kill to Live LAI - Targeting 85% Disturbance threshold")
-B03W.ratio.lai <- B03W.dead.lai/B03W.lai
-print(B03W.ratio.lai)
-
-#
-B03 <- rbind(df, df.big)
-```
-
-## B04
-```{r B04, echo=FALSE,  warning = FALSE}
-# Group C
-
-##################
-message("B04E, 65%, top-down")
-  stem %>%
-  filter(SubplotID == "B04E" & Health_status != "D") %>%
-  arrange(-dbh) -> df.big
-
-sum.leaf.area <- sum(df.big$leaf.area)
-
-# looping in
-x <- 0
-
-for (i in 1:nrow(df.big)) {
-  x <- x + df.big$leaf.area[i]
-  
-  if(x < (0.65 * sum.leaf.area)){
-    df.big$fate[i] <- "kill"}
-  else {
-    df.big$fate[i] <- "live"
-  }
-}
-
-#loook at output
-table(df.big$fate)
-
-ggplot(data = df.big, aes(x = Longitude, y = Latitude, size = dbh, color = genus, shape = fate)) +
-  geom_point(alpha = 1)+
-  scale_colour_manual(values=cbbPalette, limits = levels(stem$genus))+
-  scale_shape_manual(values=c(1, 19))+
-  # geom_text(aes(label=Nr),hjust=0, vjust=0)+
-  # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
-  ggtitle("B04E - 65% - Top-Down")+
-  theme_classic()
-
-# plot LAI
-message("Plot LAI B04E")
-B04E.lai <- sum.leaf.area/ 1000
-print(B04E.lai)
-
-# compare
-df.big %>%
-  filter(fate == "kill") %>%
-  select(leaf.area) %>%
-  sum()/1000 -> B04E.dead.lai
-message("LAI of all trees to Kill")
-print(B04E.dead.lai)
+print(C04E.dead.lai)
 
 # Compare
 message("Ratio of Kill to Live LAI - Targeting 65% Disturbance threshold")
-B04E.ratio.lai <- B04E.dead.lai/B04E.lai
-print(B04E.ratio.lai)
+C04E.ratio.lai <- C04E.dead.lai/C04E.lai
+print(C04E.ratio.lai)
 
 #####################
-message("B04W, 65%, Bottom-Down")
+message("C04W, 45%, Bottom-Down")
 
   stem %>%
-  filter(SubplotID == "B04W" & dbh >= 8 & Health_status != "D") %>%
+  filter(SubplotID == "C04W" & Health_status != "D") %>%
   arrange(dbh) -> df
 
 sum.leaf.area <- sum(df$leaf.area)
@@ -534,7 +554,7 @@ x <- 0
 for (i in 1:nrow(df)) {
   x <- x + df$leaf.area[i]
   
-  if(x < (0.65 * sum.leaf.area)){
+  if(x < (0.45 * sum.leaf.area)){
     df$fate[i] <- "kill"}
   else {
     df$fate[i] <- "live"
@@ -550,34 +570,34 @@ ggplot(data = df, aes(x = Longitude, y = Latitude, size = dbh, color = genus, sh
   scale_shape_manual(values=c(1, 19))+
   # geom_text(aes(label=Nr),hjust=0, vjust=0)+
   # guides(fill=FALSE, alpha=FALSE, size=FALSE)+
-  ggtitle("B04W - 65% - Bottom-Up")+
+  ggtitle("C04W - 45% - Bottom-Up")+
   theme_classic()
 #####################################
 # plot LAI
-message("Plot LAI B04W")
-B04W.lai <- sum.leaf.area/ 1000
-print(B04W.lai)
+message("Plot LAI C04W")
+C04W.lai <- sum.leaf.area/ 1000
+print(C04W.lai)
 
 # compare
 df %>%
   filter(fate == "kill") %>%
   select(leaf.area) %>%
-  sum()/1000 -> B04W.dead.lai
+  sum()/1000 -> C04W.dead.lai
 message("LAI of all trees to Kill")
-print(B04W.dead.lai)
+print(C04W.dead.lai)
 
 # Compare
-message("Ratio of Kill to Live LAI - Targeting 65% Disturbance threshold")
-B04W.ratio.lai <- B04W.dead.lai/B04W.lai
-print(B04W.ratio.lai)
+message("Ratio of Kill to Live LAI - Targeting 45% Disturbance threshold")
+C04W.ratio.lai <- C04W.dead.lai/C04W.lai
+print(C04W.ratio.lai)
 
-B04 <- rbind(df, df.big)
+C04 <- rbind(df, df.big)
 
 ```
 
 
 ```{r bigtime, echo=FALSE, warning = FALSE}
-big.boi <- rbind(B01, B02, B03, B04)
+big.boi <- rbind(C01, C02, C03, C04)
 
 big.boi$plot.side <- substr(big.boi$SubplotID, 4,4)
 
@@ -610,7 +630,7 @@ big.boi %>%
 
 
 #### Write this to file
-write.csv(big.boi, "group_b_lai_disturbance_treatment_output.csv")
+write.csv(big.boi, "group_c_lai_disturbance_treatment_output.csv")
 
 message("Total mortality count")
 table(big.boi$fate)
