@@ -1,7 +1,7 @@
 ---
 title: "disturbance_stem_maps_group_b"
 author: "Jeff Atkins"
-date: "April 4, 2019"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
   pdf_document: default
   html_document:
@@ -171,6 +171,8 @@ stem$sla[stem$genus == "Populus"] <- 15.89
 stem$leaf.area <- stem$leaf.mass * stem$sla
 
 
+stem %>%
+  filter(dbh >= 8) -> stem
 
 
 

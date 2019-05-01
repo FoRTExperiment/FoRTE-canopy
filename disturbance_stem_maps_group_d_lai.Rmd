@@ -1,11 +1,11 @@
 ---
 title: "disturbance_stem_maps_group_d"
 author: "Jeff Atkins"
-date: "April 4, 2019"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
   word_document: default
 ---
 
@@ -15,10 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Disturbance Stem Maps
 
-The following document produces stem maps that assign mortality and treatments 
-DRAFT
-DRAFT
-DRAFT
+The following document produces stem maps that assign mortality and treatments for the FoRTE project.
 
 ```{r inventory, echo = FALSE, message = FALSE, warning = FALSE}
 # loading the required packages
@@ -170,7 +167,8 @@ stem$sla[stem$genus == "Populus"] <- 15.89
 
 stem$leaf.area <- stem$leaf.mass * stem$sla
 
-
+stem %>%
+  filter(dbh >= 8) -> stem
 
 
 
