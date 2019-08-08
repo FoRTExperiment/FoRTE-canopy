@@ -10,6 +10,8 @@ require(stringr)
 ################################
 #big.boi <- read.csv("./data/ndvi/ndvi_forte_master.csv", skip = 7, header = FALSE)
 big.boi <- read.csv("./data/ndvi/20190807_forte_paris_reu_set.csv")
+
+#write.csv(big.boi, "2019_forte_paris_reu_set.csv")
 #
 big.boi %>% select(-1) -> df
 
@@ -69,12 +71,55 @@ df2$ratio <- df2$ndvi/df2$lai
 
 #aov(Measured.Value ~ Time + Error(Subject/Time), data = my.data)
 ndvi.rpt.anova <- aov(ndvi ~ date + Error(SubplotID/date), data = df2)
+summary(ndvi.rpt.anova)
+# 
+# The term Error(Subject/Time) models the subject-specific variance; or in the language of mixed-effect models: Subject is your random and Time your fixed effect, and Time is nested (i.e. repeatedly measured) within Subject.
+# 
+# Two more comments:
+# 
+# Keep in mind that aov only allows for random effects if the design is balanced (which is the case for the sample data you provide). If you've got an unbalanced design (e.g. due to missing observations), you will need to use a mixed-effect model.
+# 
+# It's a bit odd to use ANOVA to model a time dependence. I am assuming here that Time is a categorical variable.
 
 
-The term Error(Subject/Time) models the subject-specific variance; or in the language of mixed-effect models: Subject is your random and Time your fixed effect, and Time is nested (i.e. repeatedly measured) within Subject.
 
-Two more comments:
+df2 %>%
+  select(date, SubplotID, ratio, treatment, severity) %>%
+  group_by(date, SubplotID, treatment) %>%
+  summarise(ratio.mean = mean(ratio), ratio.sd = sd(ratio)) -> df.ratio
 
-Keep in mind that aov only allows for random effects if the design is balanced (which is the case for the sample data you provide). If you've got an unbalanced design (e.g. due to missing observations), you will need to use a mixed-effect model.
+df.ratio <- data.frame(df.ratio)
 
-It's a bit odd to use ANOVA to model a time dependence. I am assuming here that Time is a categorical variable.
+df.ratio$cv <- (df.ratio$ratio.sd / df.ratio$ratio.mean) * 100
+
+x11()
+ggplot(df.ratio, aes(x = date, y = cv, color = treatment))+ 
+  geom_point(size = 2, alpha = 0.8)+
+  theme_bw()+
+  xlab("DATE")+
+  ylab("CV of NDVI/LAI Ratio")+
+  geom_smooth(method = lm, se = FALSE)+
+  facet_grid(rows = vars(treatment))
+  
+
+# stats
+df.ratio %>%
+  filter(treatment == "B") %>%
+  lm(ratio ~ treatment)
+
+
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = date, y = ndvi))+ 
+  geom_point(size = 2, alpha = 0.2)+
+  theme_classic()+
+  xlab("DATE")+
+  ylab("NDVI")+
+  geom_smooth(method = lm, se = TRUE)
+  
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = date, y = lai))+ 
+  geom_point(size = 2, alpha = 0.2)+
+  theme_classic()+
+  xlab("DATE")+
+  ylab("LAI")+
+  geom_smooth(method = lm, se = TRUE)

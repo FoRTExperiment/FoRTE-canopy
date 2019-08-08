@@ -124,6 +124,30 @@ ggplot(df2, aes(x = date, y = ratio))+
   ylab("NDVI/LAI Ratio")+
   geom_smooth(method = lm, se = TRUE)
 
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = date, y = ndvi))+ 
+  geom_point(size = 2, alpha = 0.2)+
+  theme_classic()+
+  xlab("DATE")+
+  ylab("NDVI")+
+  geom_smooth(method = loess, se = TRUE)
+
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = date, y = lai))+ 
+  geom_point(size = 2, alpha = 0.2)+
+  theme_classic()+
+  xlab("DATE")+
+  ylab("LAI")+
+  geom_smooth(method = loess, se = TRUE)
+
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = date, y = ratio))+ 
+  geom_point(size = 2, alpha = 0.2)+
+  theme_classic()+
+  xlab("DATE")+
+  ylab("NDVI/LAI Ratio")+
+  geom_smooth(method = lm, se = TRUE)
+
 # STATS
 lai.ratio.model <- lm(ratio ~ date, data = df2)
 
