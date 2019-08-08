@@ -1,6 +1,7 @@
 #
 require(tidyverse)
 require(ggplot2)
+require(stringr)
 
 #big.boi <- read.csv("./data/ndvi/ndvi_forte_master.csv", skip = 7, header = FALSE)
 big.boi <- read.csv("./data/ndvi/20190807_forte_paris_reu_set.csv")
@@ -18,28 +19,94 @@ names(df)[5] <- "gf"
 names(df)[6] <- "open"
 #names(df)[7] <- "ci"
 
-df$plot <- substr(df$plotlong, 0, 3)
-df$plot.side <- substr(df$plotlong, 4, 4)
-df$subplot <- substr(df$plotlong, 0, 4)
+# creating new factors
+df$plot <- as.factor(substr(df$plotlong, 0, 3))
+df$plot.side <- as.factor(substr(df$plotlong, 4, 4))
+df$subplot <- as.factor(substr(df$plotlong, 0, 4))
+df$group <- as.factor(substr(df$plotlong, 0, 1))
+
+# getting rid of NAME pictures
+df %>% filter(!str_detect(df$plotlong, 'NAME')) -> df
+
+df$nps <- as.factor(substr(df$plotlong, 5, 5))
 #
+df %>% filter(project == "forte") %>% filter(group != "e") -> df2
+
+#lai
+df2$lai <- rowMeans(df2[,7:10])
 
 #boxplot rugosity
 # A basic box with the conditions colored
-x11(width = 3, height = 3)
-ggplot(df, aes(x = group, y = ndvi, fill = group))+ 
+x11()
+ggplot(df2, aes(x = date, y = ndvi, fill = subplot))+ 
   geom_boxplot()+
   theme_classic()+
   guides(fill=FALSE)+
   xlab("")+
-  ylab("NDVI")
+  ylab("NDVI")+
+  facet_grid(rows = vars(group))
+
+x11()
+ggplot(df2, aes(x = date, y = lai, fill = subplot))+ 
+  geom_boxplot()+
+  theme_classic()+
+  guides(fill=FALSE)+
+  xlab("")+
+  ylab("LAI")+
+  facet_grid(rows = vars(group))
+# math
+
+
+
 
 x11(width = 3, height = 3)
-ggplot(df, aes(x = group, y = lai, fill = group))+ 
-  geom_boxplot()+
+ggplot(df2, aes(x = lai, y = ndvi, color = group))+ 
+  geom_point()+
   theme_classic()+
   guides(fill=FALSE)+
-  xlab("")+
-  ylab("LAI")
+  xlab("LAI")+
+  ylab("NDVI")
+
+####################
+library(plotly)
+
+mtcars$am[which(mtcars$am == 0)] <- 'Automatic'
+mtcars$am[which(mtcars$am == 1)] <- 'Manual'
+mtcars$am <- as.factor(mtcars$am)
+
+p <- plot_ly(df2, x = ~date, y = ~lai, z = ~ndvi, color = ~group) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis = list(title = 'date'),
+                      yaxis = list(title = 'lai'),
+                      zaxis = list(title = 'ndvi')))
+
+x11()
+p
+
+x11()
+ggplot(df2, aes(x = date, y = lai, color = group))+ 
+  geom_point()+
+  theme_classic()+
+  guides(fill=FALSE)+
+  xlab("date")+
+  ylab("lai")+
+  facet_grid(rows = vars(group))
+
+# STATS
+lai.model <- aov(lai ~ group * date, data = df2)
+
+
+
+
+
+
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = gf, y = ndvi, color = group))+ 
+  geom_point()+
+  theme_classic()+
+  guides(fill=FALSE)+
+  xlab("gap fraction")+
+  ylab("NDVI")
 
 x11(width = 3, height = 3)
 ggplot(df, aes(x = group, y = gf, fill = group))+ 
