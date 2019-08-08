@@ -22,9 +22,13 @@ names(df)[6] <- "open"
 # creating new factors
 df$plot <- as.factor(substr(df$plotlong, 0, 3))
 df$plot.side <- as.factor(substr(df$plotlong, 4, 4))
-df$subplot <- as.factor(substr(df$plotlong, 0, 4))
+df$SubplotID <- as.factor(substr(df$plotlong, 0, 4))
 df$group <- as.factor(substr(df$plotlong, 0, 1))
 
+#
+df %>% filter(project == "forte") %>% filter(group != "e") -> df2
+
+#adding subplot
 # getting rid of NAME pictures
 df %>% filter(!str_detect(df$plotlong, 'NAME')) -> df
 
@@ -32,19 +36,48 @@ df$nps <- as.factor(substr(df$plotlong, 5, 5))
 #
 df %>% filter(project == "forte") %>% filter(group != "e") -> df2
 
+
+#adding subplot
+source("./code/addNewData.r")
+allowedVars <- c("treatment")
+
+df2 <- addNewData("./data/inventory_lookup_table_treatment.csv", df2, allowedVars)
+
+allowedVars <- c("severity")
+df2 <- addNewData("./data/inventory_lookup_table_severity.csv", df2, allowedVars)
+
+# factorize
+df2$severity <- as.factor(df2$severity)
+df2$treatment <- as.factor(df2$treatment)
+
+#make dates
+df2$date <- as.Date(df2$date)
+
 #lai
-df2$lai <- rowMeans(df2[,7:10])
+df2$lai <- rowMeans(df2[, 7:10])
+
+#ratio
+df2$ratio <- df2$ndvi/df2$lai
+
 
 #boxplot rugosity
 # A basic box with the conditions colored
 x11()
-ggplot(df2, aes(x = date, y = ndvi, fill = subplot))+ 
+ggplot(df2, aes(x = date, y = ndvi, fill = treatment))+ 
   geom_boxplot()+
   theme_classic()+
-  guides(fill=FALSE)+
+  # guides(fill=FALSE)+
   xlab("")+
   ylab("NDVI")+
   facet_grid(rows = vars(group))
+
+x11()
+ggplot(df2, aes(x = date, y = ndvi, fill = severity))+ 
+  geom_boxplot()+
+  theme_classic()+
+  # guides(fill=FALSE)+
+  xlab("")+
+  ylab("NDVI")
 
 x11()
 ggplot(df2, aes(x = date, y = lai, fill = subplot))+ 
@@ -67,21 +100,33 @@ ggplot(df2, aes(x = lai, y = ndvi, color = group))+
   xlab("LAI")+
   ylab("NDVI")
 
-####################
-library(plotly)
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = lai, y = ndvi, color = treatment))+ 
+  geom_point()+
+  theme_classic()+
+  guides(fill=FALSE)+
+  xlab("LAI")+
+  ylab("NDVI")
 
-mtcars$am[which(mtcars$am == 0)] <- 'Automatic'
-mtcars$am[which(mtcars$am == 1)] <- 'Manual'
-mtcars$am <- as.factor(mtcars$am)
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = lai, y = ndvi, color = severity))+ 
+  geom_point()+
+  theme_classic()+
+  guides(fill=FALSE)+
+  xlab("LAI")+
+  ylab("NDVI")
 
-p <- plot_ly(df2, x = ~date, y = ~lai, z = ~ndvi, color = ~group) %>%
-  add_markers() %>%
-  layout(scene = list(xaxis = list(title = 'date'),
-                      yaxis = list(title = 'lai'),
-                      zaxis = list(title = 'ndvi')))
+x11(width = 3, height = 3)
+ggplot(df2, aes(x = date, y = ratio))+ 
+  geom_point(size = 2, alpha = 0.2)+
+  theme_classic()+
+  xlab("DATE")+
+  ylab("NDVI/LAI Ratio")+
+  geom_smooth(method = lm, se = TRUE)
 
-x11()
-p
+# STATS
+lai.ratio.model <- lm(ratio ~ date, data = df2)
+
 
 x11()
 ggplot(df2, aes(x = date, y = lai, color = group))+ 
@@ -96,7 +141,10 @@ ggplot(df2, aes(x = date, y = lai, color = group))+
 lai.model <- aov(lai ~ group * date, data = df2)
 
 
-
+df2 %>%
+  select(date, group,  ratio) %>%
+  group_by(date, group) %>%
+  summarise(ratio.mean = mean(df2$ratio, na.rm = TRUE), ratio.sd = sd(df2$ratio, na.rm = TRUE))
 
 
 
