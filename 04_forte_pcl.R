@@ -23,26 +23,29 @@ df <- data.frame(df)
 
 #boxplot rugosity
 # A basic box with the conditions colored
-x11()
+x11(width = 3, height = 3)
 ggplot(pcl, aes(x = group, y = rugosity, fill = group))+ 
   geom_boxplot()+
   theme_classic()+
+  guides(fill=FALSE)+
   xlab("")+
   ylab("Rugosity")
 
-x11()
+x11(width = 3, height = 3)
 ggplot(pcl, aes(x = group, y = mean.vai, fill = group))+ 
   geom_boxplot()+
   theme_classic()+
+  guides(fill=FALSE)+
   xlab("")+
   ylab("VAI")
 
-x11()
+x11(width = 3, height = 3)
 ggplot(pcl, aes(x = group, y = sky.fraction, fill = group))+ 
   geom_boxplot()+
   theme_classic()+
+  guides(fill=FALSE)+
   xlab("")+
-  ylab("VAI")
+  ylab("Gap Fraction")
 
 
 
