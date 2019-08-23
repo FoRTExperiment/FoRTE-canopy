@@ -8,28 +8,28 @@
 
 ### checking for empty lines
 
-# setwd("./data/pcl")
-# 
-# files <- list.files(pattern = "*.CSV", full.names = TRUE)
-# 
-# for(i in seq_along(files)) {
-#   filedata <- readLines(files[i])
-#   lines_to_skip <- min(which(filedata != "")) - 1
-#   cat(i, files[i], lines_to_skip, "\n")
-#   x <- read.csv(files[i], skip = lines_to_skip)
-# }
-# 
-# setwd("C:/github/FoRTExperiment/FoRTE-canopy")
+setwd("./data/pcl/2019")
+
+files <- list.files(pattern = "*.CSV", full.names = TRUE)
+
+for(i in seq_along(files)) {
+  filedata <- readLines(files[i])
+  lines_to_skip <- min(which(filedata != "")) - 1
+  cat(i, files[i], lines_to_skip, "\n")
+  x <- read.csv(files[i], skip = lines_to_skip)
+}
+
+setwd("C:/github/FoRTExperiment/FoRTE-canopy")
 
 ######
 
 # processing for CSC
 require(forestr)
 
-data_dir <- ("./data/pcl/")
+data_dir <- ("./data/pcl/2019")
 
 
-process_pcl("./data/pcl/forteB03E.CSV", pavd = TRUE)
+# process_pcl("./data/pcl/forteB03E.CSV", pavd = TRUE)
 process_multi_pcl(data_dir, user_height = 1.05, marker.spacing = 10, max.vai = 8)
 
 # collating output

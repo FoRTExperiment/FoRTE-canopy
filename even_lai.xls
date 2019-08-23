@@ -1,0 +1,36 @@
+                               Df Sum Sq Mean Sq F value
+week                            7  58.27    8.32  23.255
+group                           3 184.22   61.41 171.540
+treatment                       2  21.36   10.68  29.840
+severity                        2  18.64    9.32  26.034
+week:group                     12  28.58    2.38   6.654
+week:treatment                 14   8.60    0.61   1.715
+group:treatment                 6  11.68    1.95   5.437
+week:severity                  14   9.79    0.70   1.953
+group:severity                  6  43.78    7.30  20.382
+treatment:severity              2   6.66    3.33   9.298
+week:group:treatment           21   6.81    0.32   0.906
+week:group:severity            21   6.14    0.29   0.817
+week:treatment:severity        14   4.34    0.31   0.865
+group:treatment:severity        6  34.52    5.75  16.074
+week:group:treatment:severity  19   5.13    0.27   0.754
+Residuals                     717 256.66    0.36        
+                                Pr(>F)    
+week                           < 2e-16 ***
+group                          < 2e-16 ***
+treatment                     3.56e-13 ***
+severity                      1.22e-11 ***
+week:group                    2.15e-11 ***
+week:treatment                0.048179 *  
+group:treatment               1.64e-05 ***
+week:severity                 0.018913 *  
+group:severity                 < 2e-16 ***
+treatment:severity            0.000103 ***
+week:group:treatment          0.583195    
+week:group:severity           0.699921    
+week:treatment:severity       0.597286    
+group:treatment:severity       < 2e-16 ***
+week:group:treatment:severity 0.762900    
+Residuals                                 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
