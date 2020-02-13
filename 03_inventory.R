@@ -231,6 +231,6 @@ ggplot(data = df.bottom, aes(x = Longitude, y = Latitude, size = (DBH_cm/10), co
   theme_classic()
 
 
-A
+
 
 

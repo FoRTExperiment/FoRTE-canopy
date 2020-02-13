@@ -3,6 +3,10 @@ require(tidyverse)
 require(ggplot2)
 require(stringr)
 
+
+cbPal <- palette( c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+x11()
+cbPal()
 #big.boi <- read.csv("./data/ndvi/ndvi_forte_master.csv", skip = 7, header = FALSE)
 big.boi <- read.csv("./data/ndvi/20190807_forte_paris_reu_set.csv")
 #
@@ -63,12 +67,21 @@ df2$ratio <- df2$ndvi/df2$lai
 #boxplot rugosity
 # A basic box with the conditions colored
 x11()
-ggplot(df2, aes(x = date, y = ndvi, fill = treatment))+ 
+ggplot(df2, aes(x = as.factor(date), y = ndvi, fill = SubplotID))+ 
   geom_boxplot()+
   theme_classic()+
-  # guides(fill=FALSE)+
+  guides(fill=FALSE)+
   xlab("")+
   ylab("NDVI")+
+  facet_grid(rows = vars(group))
+
+x11()
+ggplot(df2, aes(x = as.factor(date), y = lai, fill = SubplotID))+ 
+  geom_boxplot()+
+  theme_classic()+
+  guides(fill=FALSE)+
+  xlab("")+
+  ylab("LAI")+
   facet_grid(rows = vars(group))
 
 x11()
@@ -80,7 +93,7 @@ ggplot(df2, aes(x = date, y = ndvi, fill = severity))+
   ylab("NDVI")
 
 x11()
-ggplot(df2, aes(x = date, y = lai, fill = subplot))+ 
+ggplot(df2, aes(x = date, y = lai, fill = SubplotID))+ 
   geom_boxplot()+
   theme_classic()+
   guides(fill=FALSE)+

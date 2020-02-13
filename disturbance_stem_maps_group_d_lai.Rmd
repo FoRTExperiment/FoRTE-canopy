@@ -170,6 +170,16 @@ stem$leaf.area <- stem$leaf.mass * stem$sla
 stem %>%
   filter(dbh >= 8) -> stem
 
+# crown area estimate
+stem$crown.diameter <- 2.67 * log(stem$dbh) - 1.90
+stem$crown.area <- pi * (stem$crown.diameter/2)^2
+
+require(ggplot2)
+
+x11()
+ggplot(stem, aes(x = crown.area, y = leaf.area, color = genus))+
+  geom_point()
+
 
 
 ```

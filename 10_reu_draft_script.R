@@ -6,7 +6,6 @@ require(ggplot2)
 require(stringr)
 
 
-
 ################################
 #big.boi <- read.csv("./data/ndvi/ndvi_forte_master.csv", skip = 7, header = FALSE)
 big.boi <- read.csv("./data/ndvi/20190807_forte_paris_reu_set.csv")
@@ -67,11 +66,16 @@ df2$lai <- rowMeans(df2[, 7:10])
 df2$ratio <- df2$ndvi/df2$lai
 ########################################
 
+write.csv(df2, "ndvi_reu_forte_set.csv")
+
 # Assuming you've got a balanced design, the repeated measures ANOVA model using aov is
 
 #aov(Measured.Value ~ Time + Error(Subject/Time), data = my.data)
 ndvi.rpt.anova <- aov(ndvi ~ date + Error(SubplotID/date), data = df2)
 summary(ndvi.rpt.anova)
+
+lai.rpt.anova <- aov(lai ~ date + Error(SubplotID/date), data = df2)
+summary(lai.rpt.anova)
 # 
 # The term Error(Subject/Time) models the subject-specific variance; or in the language of mixed-effect models: Subject is your random and Time your fixed effect, and Time is nested (i.e. repeatedly measured) within Subject.
 # 
@@ -82,7 +86,7 @@ summary(ndvi.rpt.anova)
 # It's a bit odd to use ANOVA to model a time dependence. I am assuming here that Time is a categorical variable.
 
 
-
+# subplot by treatment
 df2 %>%
   select(date, SubplotID, ratio, treatment, severity) %>%
   group_by(date, SubplotID, treatment) %>%
@@ -101,6 +105,90 @@ ggplot(df.ratio, aes(x = date, y = cv, color = treatment))+
   geom_smooth(method = lm, se = FALSE)+
   facet_grid(rows = vars(treatment))
   
+#### 
+df2 %>%
+  select(date, group, ratio, treatment, severity) %>%
+  group_by(date, group, treatment) %>%
+  summarise(ratio.mean = mean(ratio), ratio.sd = sd(ratio)) -> df.group.ratio
+
+df.group.ratio <- data.frame(df.group.ratio)
+
+df.group.ratio$cv <- (df.group.ratio$ratio.sd / df.group.ratio$ratio.mean) * 100
+
+x11()
+ggplot(df.group.ratio, aes(x = date, y = cv, color = treatment))+ 
+  geom_point(size = 2, alpha = 0.8)+
+  theme_bw()+
+  xlab("DATE")+
+  ylab("CV of NDVI/LAI Ratio")+
+  geom_smooth(method = lm, se = FALSE)+
+  scale_color_discrete(name="Treatment",
+                                                           breaks=c("C", "B", "T"),
+                                                           labels=c("Control", "Bottom-Up", "Top-Down"))+
+  theme(legend.justification=c(0, 1), legend.position=c(0.02,0.98))+
+  facet_grid(rows = vars(treatment))
+
+# # subplot by severity
+df2 %>%
+  select(date, SubplotID, ratio,  severity) %>%
+  group_by(date, SubplotID, severity) %>%
+  summarise(ratio.mean = mean(ratio), ratio.sd = sd(ratio)) -> df.s.ratio
+
+df.s.ratio <- data.frame(df.s.ratio)
+
+df.s.ratio$cv <- (df.s.ratio$ratio.sd / df.s.ratio$ratio.mean) * 100
+
+x11()
+ggplot(df.s.ratio, aes(x = date, y = cv, color = severity))+ 
+  geom_point(size = 2, alpha = 0.8)+
+  theme_bw()+
+  xlab("DATE")+
+  ylab("CV of NDVI/LAI Ratio")+
+  geom_smooth(method = lm, se = FALSE)+
+  # scale_color_discrete(name="Treatment",
+  #                      breaks=c("C", "B", "T"),
+  #                      labels=c("Control", "Bottom-Up", "Top-Down"))+
+  theme(legend.justification=c(0, 1), legend.position=c(0.02,0.98))+
+  facet_grid(rows = vars(severity))
+
+##### regression models
+
+# by treatment
+df.ratio %>% 
+  filter(treatment == "B") -> b.df
+
+df.ratio %>% 
+  filter(treatment == "T") -> t.df
+
+df.ratio %>% 
+  filter(treatment == "C") -> c.df
+
+# linear models by treatment
+b.lm <- lm(cv ~ date, data = b.df)
+t.lm <- lm(cv ~ date, data = t.df)  
+c.lm <- lm(cv ~ date, data = c.df)
+
+x11()
+ggplot(b.df, aes(x = date, y = cv))+ 
+  geom_point(size = 2, alpha = 0.8)+
+  theme_bw()+
+  xlab("DATE")+
+  ylab("CV of NDVI/LAI Ratio")+
+  geom_smooth(method = lm, se = FALSE)
+x11()
+ggplot(t.df, aes(x = date, y = cv))+ 
+  geom_point(size = 2, alpha = 0.8)+
+  theme_bw()+
+  xlab("DATE")+
+  ylab("CV of NDVI/LAI Ratio")+
+  geom_smooth(method = lm, se = FALSE)
+x11()
+ggplot(c.df, aes(x = date, y = cv))+ 
+  geom_point(size = 2, alpha = 0.8)+
+  theme_bw()+
+  xlab("DATE")+
+  ylab("CV of NDVI/LAI Ratio")+
+  geom_smooth(method = lm, se = FALSE)
 
 # stats
 df.ratio %>%
