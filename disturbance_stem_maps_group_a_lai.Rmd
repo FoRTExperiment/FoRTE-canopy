@@ -154,7 +154,7 @@ stem$genus[stem$Species == "unknown"] <- "Other"
 stem$genus <- as.factor(stem$genus)
 
 attach(stem)
-stem$sla[stem$genus == "Acer"] <- 19
+stem$sla[stem$genus == "Acer"] <- 19 #m2 per kg
 stem$sla[stem$genus == "Betula"] <- 20.82
 stem$sla[stem$Species == "PIRE"] <- 5.39 #penner and deblonde ref.
 stem$sla[stem$Species == "PIST"] <- 12.5 #abrams & kubiske, 1990
