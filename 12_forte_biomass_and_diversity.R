@@ -130,7 +130,22 @@ stem %>%
   count(species.rich = n_distinct(Species)) %>%
   data.frame() -> df.richness
 
+stem %>%
+  group_by(group) %>%
+  count(species.rich = n_distinct(Species)) 
 
+stem %>%
+  group_by(group, Species) %>%
+  summarise(ba.area = sum(ba), biomass.area = sum(biomass)) %>%
+  data.frame() -> species.biomass
+
+write.csv(species.biomass, "table_of_biomass.csv")
+ 
+  stem %>%
+    filter(group == "B") %>%
+    data.frame -> B
+  unique(B$Species)
+  
 # begin plot diversity and biomass estimates
 plot.diversity <- df.richness
 
@@ -200,7 +215,7 @@ pcl2 %>%
 plot.diversity2 <- merge(plot.diversity, small.boi, by = "plotID", keep.all = TRUE) 
 
 
-write.csv(plot.diversity, "./summary/plot_diversity_and_biomass_forte_2018.csv")
+#write.csv(plot.diversity, "./summary/plot_diversity_and_biomass_forte_2018.csv")
 #
 x11()
 ggplot(plot.diversity2, aes(x = rugosity, y = (biomass * 0.001) * 10, label = as.factor(plotID), color = group))+
